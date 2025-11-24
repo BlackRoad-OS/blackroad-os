@@ -13,7 +13,6 @@ if (!event || !fs.existsSync(event)) {
 const payload = JSON.parse(fs.readFileSync(event, "utf8"));
 console.log("📦 Event Payload:", JSON.stringify(payload, null, 2));
 
-const type = payload.action;
 const comment = payload.comment?.body || "";
 const reaction = payload.reaction?.content || "";
 
