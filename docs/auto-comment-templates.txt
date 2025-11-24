@@ -1,0 +1,52 @@
+# 🤖 GitHub Auto-Comment Templates + Reactions
+
+—
+
+🔄 Standard Update:
+> 🤖 `agent-status-bot` reporting in  
+> Status: 🟡 In Progress  
+> Assignee: 🧍‍♀️ `@alexa`  
+> ETA: ⏳ Dec 2, 2025  
+> Related: #42, 🔖 `blackroad-core`  
+> Please react with:
+> • ✅ if confirmed  
+> • ❌ to stop task  
+> • 🛟 to escalate  
+> • 🤔 to request clarification  
+
+—
+
+🧠 Planning Agent Output:
+> 📋 Sprint planning complete  
+> Estimated Effort: 5️⃣ pts  
+> Cost Estimate: 💸 $2,500  
+> Sprint: 🗓️ Q4-Week2  
+> Owner: 🤖 `@planner-agent`  
+> Comment below to override
+
+—
+
+📦 Shipping Bot:
+> ✅ Task completed by `@builder-agent`  
+> Artifact: `railway-deploy #312`  
+> Status: 📦 Shipped  
+> Observability hook: 🛰️ Active  
+> Reopen this issue with 🔁
+
+—
+
+💥 Bug Escalation:
+> ❌ Detected system error  
+> Source: `lucidia-graph-agent`  
+> Stacktrace logged  
+> Human review required 🧍‍♀️  
+> Ping `@guardian-agent` or react with 🛟
+
+—
+
+🧾 Docs Agent:
+> ✍🏼 `scribe-agent` is writing the doc  
+> Progress: ✅✅🟡⬜⬜⬜⬜⬜⬜⬜  
+> ETA: Dec 3 (📆)  
+> Want an early draft? React with 👀
+
