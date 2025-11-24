@@ -1,5 +1,21 @@
 import Fastify from "fastify";
 import { getBuildInfo } from "./utils/buildInfo";
+import {
+  DigestVoiceRunner,
+  createRunnerFromEnv,
+  generateDigest,
+  validateMetadata,
+} from "./digest";
+import type { PRMetadata, DigestRunnerConfig } from "./digest";
+
+let runner: DigestVoiceRunner | null = null;
+
+function getRunner(): DigestVoiceRunner {
+  if (!runner) {
+    runner = createRunnerFromEnv();
+  }
+  return runner;
+}
 
 export async function createServer() {
   const server = Fastify({ logger: true });
@@ -9,6 +25,45 @@ export async function createServer() {
   server.get("/version", async () => {
     const info = getBuildInfo();
     return { version: info.version, commit: info.commit };
+  });
+
+  // Digest routes
+  server.post<{ Body: PRMetadata }>("/api/digest/generate", async (request, reply) => {
+    try {
+      const metadata = request.body;
+      validateMetadata(metadata);
+      const digest = generateDigest(metadata);
+      return { digest };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      reply.status(400);
+      return { error: message };
+    }
+  });
+
+  server.post<{ Body: PRMetadata }>("/api/digest/run", async (request, reply) => {
+    try {
+      const metadata = request.body;
+      const digestRunner = getRunner();
+      const result = await digestRunner.run(metadata);
+      return result;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      reply.status(500);
+      return { error: message };
+    }
+  });
+
+  server.get("/api/digest/config", async () => {
+    const digestRunner = getRunner();
+    return digestRunner.getConfig();
+  });
+
+  server.post<{ Body: Partial<DigestRunnerConfig> }>("/api/digest/config", async (request) => {
+    const updates = request.body;
+    const digestRunner = getRunner();
+    digestRunner.updateConfig(updates);
+    return { success: true, config: digestRunner.getConfig() };
   });
 
   return server;
