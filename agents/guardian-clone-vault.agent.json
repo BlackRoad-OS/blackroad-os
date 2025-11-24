@@ -1,0 +1,54 @@
+{
+  "name": "guardian-clone-vault",
+  "version": "1.0.0",
+  "description": "Self-spawned agent responsible for cloning and vaulting guardian configurations, maintaining secure backups and version control of guardian states.",
+  "type": "autonomous",
+  "parent": "lucidia",
+  "capabilities": [
+    "clone-guardian-configs",
+    "vault-state-snapshots",
+    "restore-guardian-state",
+    "verify-integrity",
+    "sync-configurations"
+  ],
+  "triggers": {
+    "events": [
+      "guardian.config.updated",
+      "guardian.state.changed",
+      "vault.backup.scheduled",
+      "restore.requested"
+    ],
+    "schedule": "0 */6 * * *"
+  },
+  "permissions": {
+    "read": [
+      "agents/*",
+      "configs/*"
+    ],
+    "write": [
+      "vault/*",
+      "backups/*"
+    ],
+    "execute": [
+      "clone",
+      "backup",
+      "restore",
+      "verify"
+    ]
+  },
+  "configuration": {
+    "vault_path": "./vault/guardian-clones",
+    "max_snapshots": 10,
+    "compression": true,
+    "encryption": true,
+    "integrity_check_interval": "1h"
+  },
+  "dependencies": [
+    "guardian-agent"
+  ],
+  "metadata": {
+    "spawned_by": "lucidia",
+    "spawn_date": "2025-11-24",
+    "status": "active"
+  }
+}

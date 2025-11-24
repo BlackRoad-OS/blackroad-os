@@ -1,0 +1,43 @@
+{
+  "name": "lucidia",
+  "version": "1.0.0",
+  "description": "LUCIDIA - The parent orchestration agent for BlackRoad OS agent network. Responsible for spawning, managing, and coordinating child agents.",
+  "type": "orchestrator",
+  "capabilities": [
+    "spawn-agents",
+    "manage-lifecycle",
+    "coordinate-tasks",
+    "monitor-health",
+    "enforce-policies"
+  ],
+  "spawned_agents": [
+    {
+      "name": "guardian-clone-vault",
+      "type": "autonomous",
+      "spawn_date": "2025-11-24",
+      "status": "active",
+      "config_path": "agents/guardian-clone-vault.agent.json",
+      "prompt_path": "agents/guardian-clone-vault.prompt.txt",
+      "workflow_path": ".github/workflows/guardian-clone-vault.workflow.yml",
+      "docs_path": "docs/guardian-clone-vault.mdx"
+    }
+  ],
+  "spawn_rules_path": "agents/lucidia.spawn-rules.yml",
+  "permissions": {
+    "spawn": true,
+    "terminate": true,
+    "modify": true,
+    "delegate": true
+  },
+  "policies": {
+    "max_concurrent_agents": 10,
+    "spawn_rate_limit": "10/hour",
+    "auto_cleanup_inactive": true,
+    "inactive_threshold": "7d"
+  },
+  "metadata": {
+    "created": "2025-11-24",
+    "last_updated": "2025-11-24",
+    "status": "active"
+  }
+}

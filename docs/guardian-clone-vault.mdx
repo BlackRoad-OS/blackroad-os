@@ -1,0 +1,204 @@
+---
+title: Guardian Clone Vault Agent
+description: Self-spawned agent for cloning and vaulting guardian configurations
+agent_type: autonomous
+parent: lucidia
+status: active
+---
+
+# Guardian Clone Vault Agent
+
+The **Guardian Clone Vault** is an autonomous agent spawned by LUCIDIA within the BlackRoad OS ecosystem. Its primary mission is to maintain secure backups and version-controlled snapshots of guardian agent configurations and states.
+
+## Overview
+
+<Note>
+This agent was self-spawned by LUCIDIA to ensure resilience and recoverability of the guardian agent network.
+</Note>
+
+### Key Features
+
+- **Automated Backups**: Scheduled snapshots every 6 hours
+- **Event-Driven**: Responds to configuration changes in real-time
+- **Encrypted Storage**: All vault data is encrypted at rest
+- **Integrity Verification**: Regular integrity checks on stored snapshots
+- **Audit Logging**: Complete audit trail of all operations
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────┐
+│                     LUCIDIA                          │
+│                  (Parent Agent)                      │
+└─────────────────────┬───────────────────────────────┘
+                      │ spawns
+                      ▼
+┌─────────────────────────────────────────────────────┐
+│              Guardian Clone Vault                    │
+│                                                      │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐ │
+│  │   Cloner    │  │   Vault     │  │  Verifier   │ │
+│  └─────────────┘  └─────────────┘  └─────────────┘ │
+└─────────────────────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────┐
+│                Guardian Agents                       │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐  │
+│  │Guardian1│ │Guardian2│ │Guardian3│ │    ...   │  │
+│  └─────────┘ └─────────┘ └─────────┘ └─────────┘  │
+└─────────────────────────────────────────────────────┘
+```
+
+## Capabilities
+
+### Clone Guardian Configs
+
+Monitors and clones guardian agent configurations when changes are detected.
+
+```json
+{
+  "capability": "clone-guardian-configs",
+  "trigger": "guardian.config.updated",
+  "action": "create versioned clone"
+}
+```
+
+### Vault State Snapshots
+
+Captures periodic snapshots of guardian agent states with compression and encryption.
+
+```json
+{
+  "capability": "vault-state-snapshots",
+  "schedule": "0 */6 * * *",
+  "retention": 10,
+  "compression": true,
+  "encryption": true
+}
+```
+
+### Restore Guardian State
+
+Responds to restoration requests with integrity validation.
+
+```json
+{
+  "capability": "restore-guardian-state",
+  "trigger": "restore.requested",
+  "validation": "integrity-check",
+  "rollback": true
+}
+```
+
+### Verify Integrity
+
+Performs regular integrity checks on vaulted data.
+
+```json
+{
+  "capability": "verify-integrity",
+  "interval": "1h",
+  "algorithm": "sha256",
+  "audit": true
+}
+```
+
+### Sync Configurations
+
+Synchronizes configurations across distributed guardians.
+
+```json
+{
+  "capability": "sync-configurations",
+  "mode": "eventual-consistency",
+  "conflict-resolution": "last-write-wins"
+}
+```
+
+## Configuration
+
+The agent is configured via `agents/guardian-clone-vault.agent.json`:
+
+```json
+{
+  "configuration": {
+    "vault_path": "./vault/guardian-clones",
+    "max_snapshots": 10,
+    "compression": true,
+    "encryption": true,
+    "integrity_check_interval": "1h"
+  }
+}
+```
+
+## Triggers
+
+The agent responds to the following events:
+
+| Event | Description |
+|-------|-------------|
+| `guardian.config.updated` | Guardian configuration was modified |
+| `guardian.state.changed` | Guardian state has changed |
+| `vault.backup.scheduled` | Scheduled backup triggered |
+| `restore.requested` | Restoration has been requested |
+
+## Workflow
+
+The agent runs as a GitHub Actions workflow with the following operations:
+
+### Manual Operations
+
+You can manually trigger the workflow with these operations:
+
+- **backup**: Create a new snapshot of all guardian configurations
+- **restore**: Restore from a previous snapshot
+- **verify**: Verify integrity of all stored snapshots
+- **sync**: Synchronize configurations across guardians
+
+### Scheduled Operations
+
+The workflow runs automatically every 6 hours to create backup snapshots.
+
+## Audit Logging
+
+All operations are logged to `vault/logs/` with the following structure:
+
+```json
+{
+  "timestamp": "2025-11-24T00:00:00Z",
+  "agent": "guardian-clone-vault",
+  "operation": "backup",
+  "target": "all",
+  "event_type": "schedule",
+  "status": "success",
+  "run_id": "12345678"
+}
+```
+
+## Security Considerations
+
+<Warning>
+Ensure that `GITHUB_TOKEN` has appropriate permissions for the vault operations.
+</Warning>
+
+- All vault data should be encrypted at rest
+- Access to restoration operations should be restricted
+- Audit logs should be regularly reviewed
+- Integrity checks should be monitored for failures
+
+## Related Agents
+
+- **LUCIDIA**: Parent agent that spawned this agent
+- **Guardian Agent**: The agents whose configurations are being vaulted
+
+## Metadata
+
+| Property | Value |
+|----------|-------|
+| Name | guardian-clone-vault |
+| Version | 1.0.0 |
+| Type | autonomous |
+| Parent | lucidia |
+| Status | active |
+| Spawn Date | 2025-11-24 |
