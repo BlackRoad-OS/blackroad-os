@@ -1,3 +1,10 @@
 node_modules
 coverage
 
+# TypeScript build output (keep source .ts/.tsx files only)
+*.js
+!bot/**/*.js
+*.js.map
+*.d.ts
+dist/
+build/
