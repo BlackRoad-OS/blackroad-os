@@ -51,25 +51,32 @@ jobs:
           echo "Awaiting approval from: @${{ inputs.awaiting_approval }}"
 
       - name: 📢 Notify Discord/Slack
-        if: ${{ env.LUCIDIA_WEBHOOK != '' }}
+        if: ${{ secrets.LUCIDIA_WEBHOOK != '' }}
         env:
           LUCIDIA_WEBHOOK: ${{ secrets.LUCIDIA_WEBHOOK }}
-          PR_URL: ${{ github.server_url }}/${{ github.repository }}/pull/${{ github.event.number }}
-          AGENT_NAME: ${{ inputs.agent_name }}
-          PURPOSE: ${{ inputs.purpose }}
-          SUMMARY: ${{ inputs.summary }}
-          TTL: ${{ inputs.ttl }}
-          AWAITING_APPROVAL: ${{ inputs.awaiting_approval }}
         run: |
-          if [ -n "$LUCIDIA_WEBHOOK" ]; then
-            MESSAGE="🚀 Lucidia has opened a new auto-generated PR:\n🔗 ${PR_URL}\n🧬 Agent: ${AGENT_NAME}\n📦 Purpose: ${PURPOSE}\n💬 Summary: ${SUMMARY}\n⏱️ TTL: ${TTL}\n👁️ Awaiting approval from @${AWAITING_APPROVAL}"
-            
-            curl -X POST \
-              -H "Content-Type: application/json" \
-              -d "{\"content\": \"${MESSAGE}\", \"text\": \"${MESSAGE}\"}" \
-              "$LUCIDIA_WEBHOOK"
-            
-            echo "✅ Notification sent to webhook"
-          else
-            echo "⚠️ LUCIDIA_WEBHOOK secret not configured - skipping notification"
-          fi
+          # Build JSON payload safely using jq to prevent shell injection
+          REPO_URL="${{ github.server_url }}/${{ github.repository }}"
+          RUN_URL="${REPO_URL}/actions/runs/${{ github.run_id }}"
+          
+          MESSAGE=$(cat <<EOF
+          🚀 Lucidia has spawned a new agent!
+          🔗 Run: ${RUN_URL}
+          🧬 Agent: ${{ inputs.agent_name }}
+          📦 Purpose: ${{ inputs.purpose }}
+          💬 Summary: ${{ inputs.summary }}
+          ⏱️ TTL: ${{ inputs.ttl }}
+          👁️ Awaiting approval from @${{ inputs.awaiting_approval }}
+          EOF
+          )
+          
+          # Use jq to safely construct JSON payload
+          PAYLOAD=$(jq -n --arg content "$MESSAGE" --arg text "$MESSAGE" \
+            '{content: $content, text: $text}')
+          
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD" \
+            "$LUCIDIA_WEBHOOK"
+          
+          echo "✅ Notification sent to webhook"
