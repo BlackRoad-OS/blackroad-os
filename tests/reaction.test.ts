@@ -1,9 +1,10 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 // Import bot modules - using require since they are CommonJS
 const projectStatusSync = require("../bot/handlers/project-status-sync.js");
 const emojiAgentRouter = require("../bot/emoji-agent-router.js");
 const agentMathUtils = require("../bot/agent-math-utils.js");
+const projectStatusService = require("../bot/project-status-service.js");
 
 describe("project-status-sync", () => {
   describe("mapEmojiToStatus", () => {
@@ -191,6 +192,32 @@ describe("emoji-agent-router", () => {
       expect(result.handled).toBe(false);
       expect(result.reason).toContain("No route");
     });
+
+    it("returns unhandled for missing reaction parameter", () => {
+      const result = emojiAgentRouter.processReaction({
+        payload: {}
+      });
+
+      expect(result.handled).toBe(false);
+      expect(result.reason).toContain("Invalid or missing reaction");
+    });
+
+    it("handles undefined options gracefully", () => {
+      const result = emojiAgentRouter.processReaction();
+
+      expect(result.handled).toBe(false);
+      expect(result.reason).toContain("Invalid or missing reaction");
+    });
+
+    it("handles missing payload gracefully", () => {
+      const result = emojiAgentRouter.processReaction({
+        reaction: "rocket"
+      });
+
+      expect(result.handled).toBe(true);
+      expect(result.agent).toBe("status-agent");
+      expect(result.issueNumber).toBeUndefined();
+    });
   });
 });
 
@@ -319,6 +346,30 @@ describe("agent-math-utils", () => {
       });
       expect(bar).toBe("✅✅✅✅⬜⬜⬜⬜");
     });
+
+    it("handles overflow when completed + inProgress > total", () => {
+      const bar = agentMathUtils.generateProgressBar({
+        completed: 8,
+        inProgress: 5,
+        total: 10,
+        width: 10
+      });
+      // Should clamp values and produce a valid bar without invalid characters
+      expect(bar).not.toContain("undefined");
+      // The bar should contain only valid emoji characters
+      expect(bar).toMatch(/^[✅🟡⬜]+$/);
+    });
+
+    it("clamps completed items that exceed total", () => {
+      const bar = agentMathUtils.generateProgressBar({
+        completed: 15,
+        inProgress: 0,
+        total: 10,
+        width: 10
+      });
+      // Should show all completed since completed >= total
+      expect(bar).toBe("✅✅✅✅✅✅✅✅✅✅");
+    });
   });
 
   describe("calculateSprintProgress", () => {
@@ -368,6 +419,71 @@ describe("agent-math-utils", () => {
       expect(report).toContain("📊 Emoji Heatmap Report");
       expect(report).toContain("✅ 45.0%");
       expect(report).toContain("Total: 100 emojis tracked");
+    });
+  });
+});
+
+describe("project-status-service", () => {
+  describe("ProjectStatusService", () => {
+    it("creates service with token", () => {
+      const service = new projectStatusService.ProjectStatusService({
+        token: "test-token"
+      });
+      expect(service).toBeDefined();
+      expect(service.token).toBe("test-token");
+    });
+
+    it("uses custom API URL when provided", () => {
+      const service = new projectStatusService.ProjectStatusService({
+        token: "test-token",
+        apiUrl: "https://custom.api/graphql"
+      });
+      expect(service.apiUrl).toBe("https://custom.api/graphql");
+    });
+
+    it("throws error for invalid query", async () => {
+      const service = new projectStatusService.ProjectStatusService({
+        token: "test-token"
+      });
+
+      await expect(service.graphql(null)).rejects.toThrow(
+        "GraphQL query must be a non-empty string"
+      );
+      await expect(service.graphql("")).rejects.toThrow(
+        "GraphQL query must be a non-empty string"
+      );
+      await expect(service.graphql(123 as any)).rejects.toThrow(
+        "GraphQL query must be a non-empty string"
+      );
+    });
+  });
+
+  describe("createFromEnv", () => {
+    const originalEnv = process.env.GITHUB_TOKEN;
+
+    beforeEach(() => {
+      delete process.env.GITHUB_TOKEN;
+    });
+
+    afterEach(() => {
+      if (originalEnv) {
+        process.env.GITHUB_TOKEN = originalEnv;
+      } else {
+        delete process.env.GITHUB_TOKEN;
+      }
+    });
+
+    it("throws error when GITHUB_TOKEN is not set", () => {
+      expect(() => projectStatusService.createFromEnv()).toThrow(
+        "GITHUB_TOKEN environment variable is required"
+      );
+    });
+
+    it("creates service when GITHUB_TOKEN is set", () => {
+      process.env.GITHUB_TOKEN = "test-token";
+      const service = projectStatusService.createFromEnv();
+      expect(service).toBeDefined();
+      expect(service.token).toBe("test-token");
     });
   });
 });

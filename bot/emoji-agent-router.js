@@ -89,7 +89,14 @@ function reactionToEmoji(reaction) {
  * @param {Object} options.payload - The event payload
  * @returns {Object} - Processing result with routing info
  */
-function processReaction({ reaction, payload }) {
+function processReaction({ reaction, payload } = {}) {
+  if (!reaction || typeof reaction !== "string") {
+    return {
+      handled: false,
+      reason: "Invalid or missing reaction parameter"
+    };
+  }
+
   const route = routeReaction(reaction);
   
   if (!route) {
@@ -99,14 +106,16 @@ function processReaction({ reaction, payload }) {
     };
   }
 
+  const safePayload = payload || {};
+
   return {
     handled: true,
     agent: route.agent,
     action: route.action,
     reaction,
     emoji: reactionToEmoji(reaction),
-    issueNumber: payload?.issue?.number || payload?.pull_request?.number,
-    repository: payload?.repository?.full_name
+    issueNumber: safePayload.issue?.number || safePayload.pull_request?.number,
+    repository: safePayload.repository?.full_name
   };
 }
 

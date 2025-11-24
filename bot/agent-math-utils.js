@@ -135,8 +135,12 @@ class EmojiHeatmap {
 function generateProgressBar({ completed, inProgress, total, width = 10 }) {
   if (total === 0) return "⬜".repeat(width);
 
-  const completedRatio = completed / total;
-  const inProgressRatio = inProgress / total;
+  // Clamp values to prevent overflow when completed + inProgress > total
+  const safeCompleted = Math.min(completed, total);
+  const safeInProgress = Math.min(inProgress, total - safeCompleted);
+
+  const completedRatio = safeCompleted / total;
+  const inProgressRatio = safeInProgress / total;
 
   const completedSlots = Math.round(completedRatio * width);
   const inProgressSlots = Math.round(inProgressRatio * width);

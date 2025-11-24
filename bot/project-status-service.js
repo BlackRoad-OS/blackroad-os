@@ -23,6 +23,10 @@ class ProjectStatusService {
    * @returns {Promise<Object>} - Query result
    */
   async graphql(query, variables = {}) {
+    if (!query || typeof query !== "string") {
+      throw new Error("GraphQL query must be a non-empty string");
+    }
+
     const response = await fetch(this.apiUrl, {
       method: "POST",
       headers: {
@@ -232,12 +236,15 @@ class ProjectStatusService {
 
 /**
  * Create a ProjectStatusService from environment variables
- * @returns {ProjectStatusService|null} - Service instance or null if token not available
+ * @returns {ProjectStatusService} - Service instance
+ * @throws {Error} - If GITHUB_TOKEN environment variable is not set
  */
 function createFromEnv() {
   const token = process.env.GITHUB_TOKEN;
   if (!token) {
-    return null;
+    throw new Error(
+      "GITHUB_TOKEN environment variable is required for ProjectStatusService"
+    );
   }
   return new ProjectStatusService({ token });
 }
