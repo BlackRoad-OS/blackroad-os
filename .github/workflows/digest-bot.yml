@@ -7,6 +7,11 @@ on:
   
   # Allow manual trigger for testing
   workflow_dispatch:
+    inputs:
+      digest_issue:
+        description: 'Issue number to post digest to (overrides default)'
+        required: false
+        type: number
 
 jobs:
   weekly-digest:
@@ -27,5 +32,6 @@ jobs:
       - name: 📊 Run Weekly Digest Bot
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DIGEST_ISSUE: ${{ inputs.digest_issue || '' }}
         run: node digest.js
         working-directory: ./bot

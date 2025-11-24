@@ -7,9 +7,9 @@ const https = require("https");
 // 🔧 Configuration
 // ============================================================
 
-// 📝 UPDATE THIS: Set to the issue number where digests will be posted
-// e.g., if your "📊 Agent Weekly Digest Thread" issue is #7, set DIGEST_ISSUE = 7
-const DIGEST_ISSUE = 1;
+// 📝 Set via DIGEST_ISSUE env var or update the default value below
+// e.g., if your "📊 Agent Weekly Digest Thread" issue is #7, set DIGEST_ISSUE=7
+const DIGEST_ISSUE = parseInt(process.env.DIGEST_ISSUE, 10) || 1;
 
 const REPO_OWNER = process.env.GITHUB_REPOSITORY_OWNER || "BlackRoad-OS";
 const REPO_NAME = process.env.GITHUB_REPOSITORY?.split("/")[1] || "blackroad-os";
@@ -297,7 +297,14 @@ async function fetchWeeklyActivity() {
 function processActivityData(data) {
   const repo = data.repository;
   const issues = repo.issues.nodes;
-  const pullRequests = repo.pullRequests.nodes;
+  
+  // Filter PRs to only include those from the past week
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+  const pullRequests = repo.pullRequests.nodes.filter((pr) => {
+    const createdAt = new Date(pr.createdAt);
+    return createdAt >= oneWeekAgo;
+  });
 
   // Issue statistics
   const openIssues = issues.filter((i) => i.state === "OPEN").length;
@@ -319,15 +326,19 @@ function processActivityData(data) {
   const closeTimes = closedIssuesList.map((i) => daysBetween(i.createdAt, i.closedAt));
   const avgCloseTime = calculateAverage(closeTimes);
 
-  // Top contributors
+  // Top contributors (filter out null authors)
   const contributorCounts = {};
   for (const issue of issues) {
-    const author = issue.author?.login || "unknown";
-    contributorCounts[author] = (contributorCounts[author] || 0) + 1;
+    const author = issue.author?.login;
+    if (author) {
+      contributorCounts[author] = (contributorCounts[author] || 0) + 1;
+    }
   }
   for (const pr of pullRequests) {
-    const author = pr.author?.login || "unknown";
-    contributorCounts[author] = (contributorCounts[author] || 0) + 1;
+    const author = pr.author?.login;
+    if (author) {
+      contributorCounts[author] = (contributorCounts[author] || 0) + 1;
+    }
   }
 
   const topContributors = Object.entries(contributorCounts)
@@ -352,16 +363,18 @@ function processActivityData(data) {
     statusBreakdown[status] = (statusBreakdown[status] || 0) + 1;
   }
 
-  // Weekly activity heatmap (mock data for now - would need commit data)
-  const weeklyActivity = {
-    Mon: Math.floor(Math.random() * 15),
-    Tue: Math.floor(Math.random() * 15),
-    Wed: Math.floor(Math.random() * 15),
-    Thu: Math.floor(Math.random() * 15),
-    Fri: Math.floor(Math.random() * 15),
-    Sat: Math.floor(Math.random() * 5),
-    Sun: Math.floor(Math.random() * 5),
-  };
+  // Weekly activity heatmap based on actual issue/PR creation dates
+  const weeklyActivity = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0, Sat: 0, Sun: 0 };
+  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  
+  for (const issue of issues) {
+    const day = dayNames[new Date(issue.createdAt).getDay()];
+    weeklyActivity[day]++;
+  }
+  for (const pr of pullRequests) {
+    const day = dayNames[new Date(pr.createdAt).getDay()];
+    weeklyActivity[day]++;
+  }
 
   return {
     issues: {
