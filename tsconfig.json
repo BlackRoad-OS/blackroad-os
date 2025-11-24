@@ -9,6 +9,6 @@
     "baseUrl": "./",
     "types": ["node", "vitest/globals", "@testing-library/jest-dom"]
   },
-  "include": ["src", "lib", "components", "tests", "app", "vitest.config.ts"],
+  "include": ["src", "lib", "components", "tests", "app", "chronicles", "vitest.config.ts"],
   "exclude": ["node_modules"]
 }

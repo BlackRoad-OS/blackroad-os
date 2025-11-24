@@ -1,3 +1,13 @@
 node_modules
 coverage
+dist
+
+# Build outputs - ignore .js files next to .ts files
+*.js.map
+src/**/*.js
+lib/**/*.js
+app/**/*.js
+components/**/*.js
+tests/**/*.js
+vitest.config.js
 
