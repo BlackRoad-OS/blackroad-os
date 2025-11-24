@@ -33,8 +33,10 @@ function main() {
     process.stdout.write(usage())
     return
   }
-  if (!fs.existsSync(path.join(process.cwd(), 'orchestra.yml'))) {
-    throw new Error('orchestra.yml not found in current directory')
+  if (command === 'lint' || command === 'render') {
+    if (!fs.existsSync(path.join(process.cwd(), 'orchestra.yml'))) {
+      throw new Error('orchestra.yml not found in current directory')
+    }
   }
   if (command === 'lint') {
     lint(manifestPath)
