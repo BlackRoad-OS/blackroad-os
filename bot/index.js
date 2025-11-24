@@ -22,19 +22,20 @@ if (reaction) {
 
   switch (reaction) {
     case "eyes":
-    case "✅":
+      console.log("👀 Mark as Done");
+      break;
+    case "hooray":
+    case "rocket":
       console.log("✅ Mark as Done");
       break;
-    case "x":
-    case "❌":
+    case "-1":
+    case "confused":
       console.log("❌ Mark as Blocked");
       break;
     case "rotating_light":
-    case "🛟":
       console.log("🛟 Escalation triggered");
       break;
     case "thinking_face":
-    case "🤔":
       console.log("🤔 Needs Review assigned");
       break;
     default:
