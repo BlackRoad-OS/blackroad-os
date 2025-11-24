@@ -2,7 +2,18 @@ import * as fs from "fs";
 import * as path from "path";
 import type { Agent, AgentValidationResult } from "./types";
 
-const AGENTS_DIR = path.join(__dirname, "../../agents");
+/**
+ * Gets the agents directory path, supporting both source and compiled environments.
+ * Can be overridden via AGENTS_DIR environment variable.
+ */
+function getAgentsDir(): string {
+  if (process.env.AGENTS_DIR) {
+    return process.env.AGENTS_DIR;
+  }
+  // Try to find agents directory relative to project root
+  const projectRoot = path.resolve(__dirname, "../..");
+  return path.join(projectRoot, "agents");
+}
 
 /**
  * Validates an agent object against the expected schema
@@ -59,7 +70,8 @@ export function validateAgent(agent: unknown): AgentValidationResult {
  * Loads an agent from a JSON file
  */
 export function loadAgent(filename: string): Agent {
-  const filepath = path.join(AGENTS_DIR, filename);
+  const agentsDir = getAgentsDir();
+  const filepath = path.join(agentsDir, filename);
   const content = fs.readFileSync(filepath, "utf8");
   const agent = JSON.parse(content);
 
@@ -75,7 +87,8 @@ export function loadAgent(filename: string): Agent {
  * Loads all agent definitions from the agents directory
  */
 export function loadAllAgents(): Agent[] {
-  const files = fs.readdirSync(AGENTS_DIR).filter((f) => f.endsWith(".json"));
+  const agentsDir = getAgentsDir();
+  const files = fs.readdirSync(agentsDir).filter((f) => f.endsWith(".json"));
   return files.map((file) => loadAgent(file));
 }
 
