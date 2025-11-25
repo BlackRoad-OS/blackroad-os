@@ -82,3 +82,21 @@ The `/health` endpoint returns:
 | `ENVIRONMENT` | Runtime environment | `production` |
 | `APP_VERSION` | Application version | `1.0.0` |
 | `APP_COMMIT` | Git commit hash | Auto-detected |
+# BlackRoad OS · Orchestrator
+
+Welcome to the meta-orchestration layer for the BlackRoad ecosystem. This repository
+describes the constellation of services, packs, and environments that make up the platform.
+
+Run `pnpm br-orchestrate render` to regenerate this README based on `orchestra.yml`.
+
+## Service Matrix
+| Service | Env | Repo | URL | Health | Depends |
+| --- | --- | --- | --- | --- | --- |
+| core-web | prod | core | https://web.blackroad.io | /api/health | gateway, operator |
+
+## Topology
+```mermaid
+graph LR
+core-web --> gateway
+core-web --> operator
+```
