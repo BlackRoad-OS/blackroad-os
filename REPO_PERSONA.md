@@ -62,8 +62,8 @@
 | `blackroad-os` | 🧠🧭 Org Brain & Map | Top-level nerve center, architecture docs |
 | `blackroad-os-core` | 🧠 Core Logic | Application brain, core business logic |
 | `blackroad-os-web` | 🎨 UI Shell | Web frontend, React components |
-| `blackroad-os-api` | ⚙️ API Layer | REST/GraphQL endpoints |
-| `blackroad-os-api-gateway` | ⚙️ Gateway | API routing, authentication |
+| `blackroad-os-api` | 🔌 API Layer | REST/GraphQL endpoints |
+| `blackroad-os-api-gateway` | 🚪 Gateway | API routing, authentication |
 | `blackroad-os-operator` | ⚙️ Operator | Jobs, automation, cron tasks |
 | `blackroad-os-prism-console` | 🕹️ Console | Control plane, dashboards |
 | `blackroad-os-infra` | ☁️ Infra | Cloudflare, Railway, DNS configs |
@@ -82,6 +82,8 @@
 | 📚 | Docs / knowledge |
 | 🧪 | Research / experiments |
 | ⚙️ | Operator / jobs / automation |
+| 🔌 | API / endpoints |
+| 🚪 | Gateway / routing |
 | 🕹️ | Console / dashboards |
 | ☁️ | Infra / DNS / envs |
 | 🧾 | Archive / logs |
