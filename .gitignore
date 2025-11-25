@@ -27,3 +27,10 @@ dist
 # Generated JS files (source is TypeScript)
 *.js
 !vitest.config.js
+# TypeScript build output
+*.js
+!bot/*.js
+!bot/**/*.js
+
+# Generated output
+spawned-agents.json
