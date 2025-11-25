@@ -1,5 +1,6 @@
 node_modules
 coverage
+dist
 
 # Build artifacts
 *.js
@@ -11,3 +12,6 @@ coverage
 !*.ts
 !*.tsx
 dist
+# Generated JS files from TypeScript
+*.js
+!bot/**/*.js
