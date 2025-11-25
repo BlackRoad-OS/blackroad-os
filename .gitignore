@@ -42,3 +42,10 @@ spawned-agents.json
 # Generated agents directory
 agents/
 
+# TypeScript build output (keep source .ts/.tsx files only)
+*.js
+!bot/**/*.js
+*.js.map
+*.d.ts
+dist/
+build/
