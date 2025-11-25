@@ -1,0 +1,21 @@
+# railway.toml
+# Railway deployment configuration for blackroad-os
+
+[build]
+builder = "NIXPACKS"
+watch = ["src", "package.json"]
+
+[deploy]
+startCommand = "npx tsx src/index.ts"
+healthcheckPath = "/health"
+restartPolicy = "on-failure"
+maxRetries = 5
+
+[variables]
+SERVICE_NAME = "blackroad-os"
+PORT = "3000"
+ENVIRONMENT = "production"
+
+[resources]
+cpu = 1
+memory = "1024MB"
