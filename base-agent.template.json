@@ -1,0 +1,84 @@
+{
+  "$schema": "./schemas/agent-spec.schema.json",
+  "description": "Base template for creating new Lucidia agents. Copy and customize for your agent.",
+  "template": {
+    "id": "{{agent-id}}",
+    "name": "{{Agent Display Name}}",
+    "role": "{{role: interpreter | sentinel | documenter | validator | orchestrator}}",
+    "source": "bot/{{agent-name}}.js",
+    "traits": [
+      "{{trait-1}}",
+      "{{trait-2}}"
+    ],
+    "inputs": ["{{input-type-1}}", "{{input-type-2}}"],
+    "outputs": ["{{output-type-1}}", "{{output-type-2}}"],
+    "triggers": ["{{trigger-type::value}}"],
+    "inherits_from": "{{base-agent-type or null}}"
+  },
+  "available_roles": [
+    {
+      "role": "interpreter",
+      "description": "Processes and interprets data, generates summaries and insights",
+      "base_template": "base-interpreter-agent"
+    },
+    {
+      "role": "sentinel",
+      "description": "Monitors for specific events and triggers alerts",
+      "base_template": "base-sentinel-agent"
+    },
+    {
+      "role": "documenter",
+      "description": "Creates and maintains documentation from project data",
+      "base_template": "base-documenter-agent"
+    },
+    {
+      "role": "validator",
+      "description": "Validates code quality, tests, and compliance",
+      "base_template": "base-validator-agent"
+    },
+    {
+      "role": "orchestrator",
+      "description": "Coordinates other agents and manages workflows",
+      "base_template": "base-orchestrator-agent"
+    }
+  ],
+  "available_trigger_types": [
+    {
+      "type": "cron",
+      "syntax": "cron::{schedule}",
+      "examples": ["cron::weekly", "cron::daily", "cron::hourly", "cron::0 9 * * 1"]
+    },
+    {
+      "type": "command",
+      "syntax": "command::{command text}",
+      "examples": ["command::summarize agent performance", "command::generate docs"]
+    },
+    {
+      "type": "reaction",
+      "syntax": "reaction::{emoji}",
+      "examples": ["reaction::🛟", "reaction::❌", "reaction::✅"]
+    },
+    {
+      "type": "event",
+      "syntax": "event::{github_event}",
+      "examples": ["event::pr_merged", "event::issue_created", "event::test_complete"]
+    },
+    {
+      "type": "alert",
+      "syntax": "alert::{agent-id}",
+      "examples": ["alert::guardian-agent", "alert::qa-agent"]
+    }
+  ],
+  "common_traits": [
+    "executive-tone",
+    "emoji-native",
+    "math-ratio-logic",
+    "markdown-output",
+    "verbose-logging",
+    "alert-driven",
+    "test-aware",
+    "coverage-focused",
+    "strategic-planning",
+    "changelog-aware"
+  ]
+}

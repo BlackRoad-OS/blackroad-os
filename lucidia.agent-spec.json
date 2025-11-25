@@ -1,0 +1,82 @@
+{
+  "$schema": "./schemas/agent-spec.schema.json",
+  "version": "1.0.0",
+  "agents": [
+    {
+      "id": "codex-digest-agent",
+      "name": "Codex Digest Agent",
+      "role": "interpreter",
+      "source": "bot/digest.js",
+      "traits": [
+        "executive-tone",
+        "emoji-native",
+        "math-ratio-logic",
+        "markdown-output"
+      ],
+      "inputs": ["emoji-digest", "weekly-stats"],
+      "outputs": ["markdown-summary", "action-recommendations"],
+      "triggers": ["cron::weekly", "command::summarize agent performance"],
+      "inherits_from": "base-interpreter-agent"
+    },
+    {
+      "id": "guardian-agent",
+      "name": "Guardian Agent",
+      "role": "sentinel",
+      "source": "bot/guardian.js",
+      "traits": [
+        "alert-driven",
+        "emoji-native",
+        "escalation-handler"
+      ],
+      "inputs": ["escalation-events", "reaction-triggers"],
+      "outputs": ["alert-notifications", "status-updates"],
+      "triggers": ["reaction::🛟", "reaction::❌"],
+      "alerts": ["planner-agent"]
+    },
+    {
+      "id": "scribe-agent",
+      "name": "Scribe Agent",
+      "role": "documenter",
+      "source": "bot/scribe.js",
+      "traits": [
+        "verbose-logging",
+        "markdown-output",
+        "changelog-aware"
+      ],
+      "inputs": ["commit-history", "pr-metadata"],
+      "outputs": ["documentation", "changelog-entries"],
+      "triggers": ["event::pr_merged", "command::generate docs"],
+      "inherits_from": "base-documenter-agent"
+    },
+    {
+      "id": "qa-agent",
+      "name": "QA Agent",
+      "role": "validator",
+      "source": "bot/qa.js",
+      "traits": [
+        "test-aware",
+        "coverage-focused",
+        "regression-detector"
+      ],
+      "inputs": ["test-results", "coverage-reports"],
+      "outputs": ["test-summaries", "regression-alerts"],
+      "triggers": ["event::test_complete", "cron::daily"],
+      "inherits_from": "base-validator-agent"
+    },
+    {
+      "id": "planner-agent",
+      "name": "Planner Agent",
+      "role": "orchestrator",
+      "source": "bot/planner.js",
+      "traits": [
+        "strategic-planning",
+        "priority-aware",
+        "resource-optimizer"
+      ],
+      "inputs": ["agent-alerts", "project-status", "escalations"],
+      "outputs": ["task-assignments", "priority-updates", "workflow-triggers"],
+      "triggers": ["alert::guardian-agent", "cron::hourly", "command::replan"],
+      "inherits_from": "base-orchestrator-agent"
+    }
+  ]
+}
