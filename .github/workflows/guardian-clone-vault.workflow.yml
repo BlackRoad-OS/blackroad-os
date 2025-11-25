@@ -47,6 +47,17 @@ on:
       - guardian.state.changed
       - vault.backup.scheduled
       - restore.requested
+        default: 'run'
+        type: choice
+        options:
+          - run
+          - warm-up
+          - deactivate
+  schedule:
+    - cron: '0 */6 * * *'  # Run every 6 hours
+
+permissions:
+  contents: read
 
 jobs:
   guardian-clone-vault:
@@ -240,3 +251,15 @@ jobs:
           echo "| Target | ${{ github.event.inputs.target || 'all' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Status | ${{ steps.execute.outputs.status }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Timestamp | $(date -Iseconds) |" >> $GITHUB_STEP_SUMMARY
+      - name: 🛡️ Run Guardian Clone Vault Agent
+        run: |
+          echo "🛡️ Guardian Clone Vault Activated"
+          echo "Role: sentinel"
+          echo "Traits: incident-response, triage, overflow"
+          echo "TTL: 96h"
+          echo "Inherits From: guardian-agent"
+          echo "Action: ${{ github.event.inputs.action || 'scheduled-run' }}"
+        env:
+          AGENT_ID: guardian-clone-vault
+          AGENT_ROLE: sentinel
+          AGENT_TTL: 96h

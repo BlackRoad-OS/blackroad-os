@@ -87,5 +87,17 @@
     "spawned_by": "lucidia",
     "spawn_date": "2025-11-24",
     "status": "active"
+  "inheritsFrom": "guardian-agent",
+  "metadata": {
+    "createdBy": "lucidia.spawn-runner.js",
+    "reason": "Auto-spawned to support main guardian-agent during short-term escalation storm",
+    "escalationsLogged": 18,
+    "escalationPeriod": "72h",
+    "parentLoadCapacity": "85%"
+  },
+  "config": {
+    "autoDeactivate": true,
+    "deactivateAfter": "96h",
+    "manualExtendable": true
   }
 }
