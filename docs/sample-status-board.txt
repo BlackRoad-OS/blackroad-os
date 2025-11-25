@@ -1,0 +1,29 @@
+# 🚦 Sample Emoji Status Bars for Workflow Agents
+
+Progress Example (Full Spectrum):
+
+⬜⬜🧍‍♀️🟡🤖🆘⚠️🤔✅✅
+
+Meaning:
+⬜⬜ = Not started
+🧍‍♀️ = Assigned to human
+🟡 = Waiting on input
+🤖 = Agent initiated
+🆘 = Blocked / needs help
+⚠️ = Warning raised
+🤔 = Needs review
+✅ = Completed stage
+
+🛠️ Modular Example Patterns:
+
+🔁 Workflow Loop:
+⬜🧍‍♀️🤖🛟🔖📋🤔✅🆕🔙
+
+📦 Delivery Cycle:
+⬜🆕🧍‍♀️🟡🤖📋🤔✅✅🛑
+
+📣 Status Comm Banner:
+✅✅🟢🟢🟡⚠️❌🔴🆘🛑
+
+Use these in PRs, issues, README dashboards, or auto-comments.
+All status bars are 10-emoji wide. Add timestamps if desired.
