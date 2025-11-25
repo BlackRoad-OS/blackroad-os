@@ -56,3 +56,6 @@ lib/**/*.js
 components/**/*.js
 tests/**/*.js
 vitest.config.js
+node_modules/
+dist/
+package-lock.json

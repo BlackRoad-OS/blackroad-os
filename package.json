@@ -50,9 +50,10 @@
   "private": true,
   "type": "module",
   "bin": {
-    "br-orchestrate": "tsx src/cli.ts"
+    "br-orchestrate": "dist/src/cli.js"
   },
   "scripts": {
+    "prepare": "npm run build",
     "lint": "pnpm run lint:ts && pnpm run lint:yaml && pnpm run format:check",
     "lint:ts": "eslint . --ext .ts,.tsx,.js,.cjs,.mjs",
     "lint:yaml": "yaml-lint orchestra.yml",
@@ -68,6 +69,7 @@
     "node": ">=18"
   },
   "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
     "eslint": "^8.56.0",
