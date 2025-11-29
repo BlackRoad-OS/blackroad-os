@@ -1,5 +1,6 @@
 using UnityEngine;
 using BlackRoad.Worldbuilder.Interaction;
+using BlackRoad.Worldbuilder.Items;
 
 namespace BlackRoad.Worldbuilder.Life
 {
@@ -7,6 +8,8 @@ namespace BlackRoad.Worldbuilder.Life
     /// Allows the player to feed and "pet" critters.
     /// Feeding reduces hunger via CritterNeeds.
     /// Petting increases a simple trust value.
+    /// Feeding uses items from the player's Inventory if available.
+    /// Petting increases trust only.
     /// </summary>
     public class CritterInteraction : Interactable
     {
@@ -23,6 +26,15 @@ namespace BlackRoad.Worldbuilder.Life
         [Header("Trust")]
         [Range(0f, 1f)]
         [SerializeField] private float trust = 0f;
+        [Header("Trust")]
+        [Range(0f, 1f)]
+        [SerializeField] private float trust = 0f;
+        [SerializeField] private float trustIncreaseOnPet = 0.1f;
+        [SerializeField] private float trustIncreaseOnFeed = 0.15f;
+
+        [Header("Visual Feedback")]
+        [SerializeField] private Color feedColor = Color.green;
+        [SerializeField] private Color petColor = Color.cyan;
 
         public float Trust => trust;
 
@@ -59,6 +71,38 @@ namespace BlackRoad.Worldbuilder.Life
 
             // Small "happy" animation cue (bob up slightly).
             StartCoroutine(BobAnimation(Color.green));
+            var inventory = interactor.GetComponent<Inventory>();
+
+            // If hungry and we have inventory & food, feed
+            if (needs != null && needs.IsHungry && inventory != null)
+            {
+                var foodItem = inventory.GetAnyFoodItem();
+                if (foodItem != null && foodItem.IsFood)
+                {
+                    int removed = inventory.RemoveItem(foodItem, 1);
+                    if (removed > 0)
+                    {
+                        Feed(foodItem);
+                        return;
+                    }
+                }
+            }
+
+            // Otherwise just pet
+            Pet();
+        }
+
+        private void Feed(ItemDefinition item)
+        {
+            if (needs != null && item.IsFood)
+            {
+                // Use item nutrition to reduce hunger
+                float newHunger = Mathf.Clamp01(needs.Hunger - item.NutritionValue);
+                needs.SetHunger(newHunger);
+            }
+
+            trust = Mathf.Clamp01(trust + trustIncreaseOnFeed);
+            StartCoroutine(BobAnimation(feedColor));
         }
 
         private void Pet()
@@ -67,6 +111,8 @@ namespace BlackRoad.Worldbuilder.Life
 
             // Slight bob to show reaction.
             StartCoroutine(BobAnimation(Color.cyan));
+            trust = Mathf.Clamp01(trust + trustIncreaseOnPet);
+            StartCoroutine(BobAnimation(petColor));
         }
 
         private System.Collections.IEnumerator BobAnimation(Color color)
