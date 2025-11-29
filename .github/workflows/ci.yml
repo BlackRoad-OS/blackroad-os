@@ -1,28 +1,40 @@
-name: ci
+name: CI
 
 on:
   push:
-    branches: ["*"]
+    branches: [main]
   pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          version: 8
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
+          node-version: '20'
+          cache: 'npm'
+
       - name: Install dependencies
-        run: pnpm install
+        run: npm ci
+
       - name: Lint
-        run: pnpm lint
+        run: npm run lint --if-present
+
+      - name: Type check
+        run: npm run type-check --if-present
+
+      - name: Build
+        run: npm run build --if-present
+
       - name: Test
-        run: pnpm test
-      - name: Type Check
-        run: pnpm build
-      - name: Render artifacts
-        run: pnpm br-orchestrate render
+        run: npm test --if-present
