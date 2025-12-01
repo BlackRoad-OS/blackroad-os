@@ -7,7 +7,7 @@ import {
 import chroniclesData from "./lucidia-chronicles.json";
 
 export function getChroniclesRegistry(): ChroniclesRegistry {
-  return chroniclesData as ChroniclesRegistry;
+  return chroniclesData as unknown as ChroniclesRegistry;
 }
 
 export function getEpisodes(): ChronicleEpisode[] {

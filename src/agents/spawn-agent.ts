@@ -172,9 +172,12 @@ export function spawnAgent(name: string, options: SpawnOptions = {}): Agent {
     role,
     description: options.description || `${generateDisplayName(id)} - A ${role} agent for the Lucidia system`,
     traits: options.traits || roleConfig.traits,
-    triggers: options.emoji 
+    inputs: [],
+    outputs: [],
+    triggers: options.emoji
       ? [{ emoji: options.emoji, action: "activate" }, ...roleConfig.triggers]
       : roleConfig.triggers,
+    inherits_from: options.parent || "base-agent",
     capabilities: allCapabilities,
     metadata: {
       createdAt: new Date().toISOString(),
@@ -308,7 +311,9 @@ export function main(): void {
   console.log(`   Role: ${agent.role}`);
   console.log(`   File: ${filePath}`);
   console.log(`   Traits: ${agent.traits.join(", ")}`);
-  console.log(`   Triggers: ${agent.triggers.map(t => t.emoji).join(" ")}`);
+  console.log(
+    `   Triggers: ${agent.triggers.map(trigger => (typeof trigger === "string" ? trigger : trigger.emoji)).join(" ")}`
+  );
   
   if (options.parent) {
     updateParentAgent(options.parent, agent.id);

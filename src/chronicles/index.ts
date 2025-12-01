@@ -3,6 +3,7 @@ export * from "./chronicles";
 import * as fs from "fs";
 import * as path from "path";
 import type { Chronicles, Episode, EpisodeFrontmatter } from "./types";
+import { getEpisodeById as getRegistryEpisodeById } from "../../chronicles/index";
 
 const CHRONICLES_DIR = path.join(process.cwd(), "lucidia-chronicles");
 const CHRONICLES_JSON = path.join(CHRONICLES_DIR, "chronicles.json");
@@ -24,8 +25,13 @@ export function addEpisode(episode: Episode): Chronicles {
 }
 
 export function getEpisodeById(id: string): Episode | undefined {
+  const registryEpisode = getRegistryEpisodeById(id);
+  if (registryEpisode) {
+    return registryEpisode as Episode;
+  }
   const chronicles = readChronicles();
-  return chronicles.episodes.find((ep) => ep.id === id);
+  const normalizedId = id.startsWith("episode-") ? id : `episode-${id}`;
+  return chronicles.episodes.find((ep) => ep.id === id || ep.id === normalizedId);
 }
 
 export function listEpisodes(): Episode[] {

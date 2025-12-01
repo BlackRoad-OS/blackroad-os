@@ -1,11 +1,5 @@
 /**
  * Agent Type Definitions for Lucidia DSL Agent System
- * 
- * These types define the schema for agents that can be:
- * - Triggerable via emojis
- * - Linkable to issues and PRs
- * - Self-describing
- * - Able to spawn more agents
  */
 
 export interface AgentTrigger {
@@ -26,6 +20,7 @@ export interface AgentMetadata {
   lastModified?: string;
 }
 
+/**
  * Agent type definition for BlackRoad OS Genesis Agents
  */
 export interface Agent {
@@ -34,9 +29,13 @@ export interface Agent {
   role: string;
   description: string;
   traits: string[];
-  triggers: AgentTrigger[];
-  capabilities: AgentCapability[];
-  metadata: AgentMetadata;
+  inputs: string[];
+  outputs: string[];
+  triggers: (AgentTrigger | string)[];
+  inherits_from: string | null;
+  active?: boolean;
+  capabilities?: AgentCapability[];
+  metadata?: AgentMetadata;
   parentAgent?: string;
   childAgents?: string[];
 }
@@ -44,27 +43,10 @@ export interface Agent {
 export interface AgentTemplate {
   $schema?: string;
   templateVersion: string;
-  defaults: Omit<Partial<Agent>, 'metadata'> & { metadata?: Partial<AgentMetadata> };
+  defaults: Omit<Partial<Agent>, "metadata"> & { metadata?: Partial<AgentMetadata> };
 }
 
-export type AgentRole = 
-  | "scribe" 
-  | "qa" 
-  | "planner" 
-  | "broadcast" 
-  | "guardian" 
-  | "digest" 
-  | "archive" 
-  | "support"
-  | "custom";
-  traits: string[];
-  inputs: string[];
-  outputs: string[];
-  description: string;
-  triggers: string[];
-  inherits_from: string | null;
-  active?: boolean;
-}
+export type AgentRole = string;
 
 /**
  * Agent validation result

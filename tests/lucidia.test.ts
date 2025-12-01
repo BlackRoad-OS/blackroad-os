@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "fs";
 import { parse } from "yaml";
 import { join } from "path";
+import { Lucidia, createLucidia } from "../src/lucidia";
+import type { SpawnRulesConfig, Metrics } from "../src/lucidia/types";
 
 describe("lucidia.yml", () => {
   const lucidiaPath = join(__dirname, "..", "lucidia.yml");
@@ -19,7 +21,7 @@ describe("lucidia.yml", () => {
     expect(lucidia.emoji_registry).toBeDefined();
     expect(lucidia.emoji_registry.status).toBeDefined();
     expect(lucidia.emoji_registry.reactions).toBeDefined();
-    
+
     // Verify key emoji mappings
     expect(lucidia.emoji_registry.status["✅"]).toBe("Done");
     expect(lucidia.emoji_registry.status["❌"]).toBe("Blocked");
@@ -73,8 +75,8 @@ describe("lucidia.yml", () => {
     expect(lucidia.outputs["markdown-summary"].format).toBe("markdown");
     expect(lucidia.outputs["actionable-recommendations"]).toBeDefined();
     expect(lucidia.outputs["escalation-alerts"]).toBeDefined();
-import { Lucidia, createLucidia } from "../src/lucidia";
-import type { SpawnRulesConfig, Metrics } from "../src/lucidia/types";
+  });
+});
 
 const testConfig: SpawnRulesConfig = {
   version: "1.0.0",
