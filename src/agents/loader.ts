@@ -88,7 +88,9 @@ export function loadAgent(filename: string): Agent {
  */
 export function loadAllAgents(): Agent[] {
   const agentsDir = getAgentsDir();
-  const files = fs.readdirSync(agentsDir).filter((f) => f.endsWith(".json"));
+  const files = fs
+    .readdirSync(agentsDir)
+    .filter((f) => f.endsWith(".json") && f !== "lucidia.agent-spec.json");
   return files.map((file) => loadAgent(file));
 }
 

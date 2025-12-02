@@ -1,44 +1,24 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import * as fs from "fs";
-import * as path from "path";
+import { execSync } from "child_process";
+import fs from "fs";
+import path from "path";
 import { spawnAgent, saveAgent } from "../src/agents/spawn-agent";
 import { AgentBuilder, AgentRegistry, createAgent } from "../src/agents/lucidia-agent-builder";
 import type { Agent } from "../src/agents/types";
 
 const TEST_AGENTS_DIR = path.join(__dirname, "../src/agents");
 const TEST_OUTPUT_DIR = "/tmp/test-agents";
-
-describe("spawn-agent", () => {
-  beforeEach(() => {
-    // Create test output directory
-    if (!fs.existsSync(TEST_OUTPUT_DIR)) {
-      fs.mkdirSync(TEST_OUTPUT_DIR, { recursive: true });
-import { describe, expect, it, beforeEach, afterEach } from "vitest";
-import { execSync } from "child_process";
-import fs from "fs";
-import path from "path";
-
 const TEST_AGENT_NAME = "test-agent-xyz";
 const ROOT_DIR = path.join(__dirname, "..");
 
-describe("spawn-agent.js", () => {
+describe("spawn-agent utilities", () => {
   beforeEach(() => {
-    // Clean up any existing test agent files before each test
-    const paths = [
-      path.join(ROOT_DIR, "agents", `${TEST_AGENT_NAME}.agent.json`),
-      path.join(ROOT_DIR, "agents", `${TEST_AGENT_NAME}.prompt.txt`),
-      path.join(ROOT_DIR, ".github", "workflows", `${TEST_AGENT_NAME}.workflow.yml`),
-      path.join(ROOT_DIR, "docs", "agents", `${TEST_AGENT_NAME}.mdx`),
-    ];
-    for (const p of paths) {
-      if (fs.existsSync(p)) {
-        fs.unlinkSync(p);
-      }
+    if (!fs.existsSync(TEST_OUTPUT_DIR)) {
+      fs.mkdirSync(TEST_OUTPUT_DIR, { recursive: true });
     }
   });
 
   afterEach(() => {
-    // Clean up test files
     if (fs.existsSync(TEST_OUTPUT_DIR)) {
       const files = fs.readdirSync(TEST_OUTPUT_DIR);
       for (const file of files) {
@@ -83,7 +63,7 @@ describe("spawn-agent.js", () => {
     it("should include parent agent reference", () => {
       const agent = spawnAgent("child-agent", { parent: "parent-agent" });
       expect(agent.parentAgent).toBe("parent-agent");
-      expect(agent.metadata.createdBy).toContain("spawned-by");
+      expect(agent.metadata?.createdBy).toContain("spawned-by");
     });
 
     it("should include custom traits", () => {
@@ -94,7 +74,7 @@ describe("spawn-agent.js", () => {
 
     it("should include base capabilities", () => {
       const agent = spawnAgent("my-agent");
-      const capabilityNames = agent.capabilities.map(c => c.name);
+      const capabilityNames = agent.capabilities?.map((c) => c.name) ?? [];
       expect(capabilityNames).toContain("self-describe");
       expect(capabilityNames).toContain("issue-link");
       expect(capabilityNames).toContain("pr-link");
@@ -102,20 +82,20 @@ describe("spawn-agent.js", () => {
 
     it("should include role-specific triggers", () => {
       const agent = spawnAgent("scribe-agent");
-      const triggerEmojis = agent.triggers.map(t => t.emoji);
+      const triggerEmojis = (agent.triggers as any[]).map((t) => (typeof t === "string" ? t : t.emoji));
       expect(triggerEmojis).toContain("📝");
     });
 
     it("should include custom emoji trigger", () => {
       const agent = spawnAgent("my-agent", { emoji: "🔮" });
-      const triggerEmojis = agent.triggers.map(t => t.emoji);
+      const triggerEmojis = (agent.triggers as any[]).map((t) => (typeof t === "string" ? t : t.emoji));
       expect(triggerEmojis).toContain("🔮");
     });
 
     it("should include metadata with timestamp", () => {
       const agent = spawnAgent("my-agent");
-      expect(agent.metadata.createdAt).toBeDefined();
-      expect(agent.metadata.version).toBe("1.0.0");
+      expect(agent.metadata?.createdAt).toBeDefined();
+      expect(agent.metadata?.version).toBe("1.0.0");
     });
   });
 
@@ -123,11 +103,11 @@ describe("spawn-agent.js", () => {
     it("should save agent to JSON file", () => {
       const agent = spawnAgent("test-save-agent");
       const filePath = saveAgent(agent, TEST_OUTPUT_DIR);
-      
+
       expect(fs.existsSync(filePath)).toBe(true);
-      
+
       const content = fs.readFileSync(filePath, "utf-8");
-      const savedAgent = JSON.parse(content);
+      const savedAgent = JSON.parse(content) as Agent;
       expect(savedAgent.id).toBe("test-save-agent");
     });
   });
@@ -148,25 +128,22 @@ describe("AgentBuilder", () => {
     expect(agent.role).toBe("guardian");
     expect(agent.description).toBe("A custom guardian agent");
     expect(agent.traits).toContain("vigilant");
-    expect(agent.triggers.some(t => t.emoji === "🛡️")).toBe(true);
-    expect(agent.capabilities.some(c => c.name === "monitoring")).toBe(true);
+    expect(agent.triggers.some((t) => (typeof t === "string" ? t === "🛡️" : t.emoji === "🛡️"))).toBe(
+      true
+    );
+    expect(agent.capabilities?.some((c) => c.name === "monitoring")).toBe(true);
   });
 
   it("should set parent agent", () => {
-    const agent = createAgent("Child Agent")
-      .withRole("support")
-      .withParent("parent-id")
-      .build();
+    const agent = createAgent("Child Agent").withRole("support").withParent("parent-id").build();
 
     expect(agent.parentAgent).toBe("parent-id");
   });
 
   it("should add default capabilities if none provided", () => {
-    const agent = createAgent("Simple Agent")
-      .withRole("custom")
-      .build();
+    const agent = createAgent("Simple Agent").withRole("custom").build();
 
-    const capabilityNames = agent.capabilities.map(c => c.name);
+    const capabilityNames = agent.capabilities?.map((c) => c.name) ?? [];
     expect(capabilityNames).toContain("self-describe");
   });
 });
@@ -175,11 +152,10 @@ describe("AgentRegistry", () => {
   it("should load existing agents", () => {
     const registry = new AgentRegistry(TEST_AGENTS_DIR);
     const agents = registry.loadAll();
-    
+
     expect(agents.length).toBeGreaterThan(0);
-    
-    // Should have loaded the predefined agents
-    const agentIds = agents.map(a => a.id);
+
+    const agentIds = agents.map((a) => a.id);
     expect(agentIds).toContain("scribe-agent");
     expect(agentIds).toContain("qa-agent");
     expect(agentIds).toContain("guardian-agent");
@@ -188,7 +164,7 @@ describe("AgentRegistry", () => {
   it("should get agent by ID", () => {
     const registry = new AgentRegistry(TEST_AGENTS_DIR);
     const agent = registry.get("scribe-agent");
-    
+
     expect(agent).toBeDefined();
     expect(agent?.role).toBe("scribe");
   });
@@ -197,7 +173,7 @@ describe("AgentRegistry", () => {
     const registry = new AgentRegistry(TEST_AGENTS_DIR);
     registry.loadAll();
     const qaAgents = registry.findByRole("qa");
-    
+
     expect(qaAgents.length).toBeGreaterThan(0);
     expect(qaAgents[0].role).toBe("qa");
   });
@@ -206,17 +182,21 @@ describe("AgentRegistry", () => {
     const registry = new AgentRegistry(TEST_AGENTS_DIR);
     registry.loadAll();
     const agents = registry.findByTrigger("📝");
-    
+
     expect(agents.length).toBeGreaterThan(0);
   });
 
   it("should list all agent IDs", () => {
     const registry = new AgentRegistry(TEST_AGENTS_DIR);
     const ids = registry.list();
-    
+
     expect(ids.length).toBeGreaterThan(0);
     expect(ids).toContain("scribe-agent");
-    // Clean up test agent files after each test
+  });
+});
+
+describe("spawn-agent script", () => {
+  const cleanupFiles = () => {
     const paths = [
       path.join(ROOT_DIR, "agents", `${TEST_AGENT_NAME}.agent.json`),
       path.join(ROOT_DIR, "agents", `${TEST_AGENT_NAME}.prompt.txt`),
@@ -228,16 +208,20 @@ describe("AgentRegistry", () => {
         fs.unlinkSync(p);
       }
     }
-    // Clean up directories if empty
-    const dirs = [
-      path.join(ROOT_DIR, "agents"),
-      path.join(ROOT_DIR, "docs", "agents"),
-    ];
+    const dirs = [path.join(ROOT_DIR, "agents"), path.join(ROOT_DIR, "docs", "agents")];
     for (const d of dirs) {
       if (fs.existsSync(d) && fs.readdirSync(d).length === 0) {
         fs.rmSync(d, { recursive: true });
       }
     }
+  };
+
+  beforeEach(() => {
+    cleanupFiles();
+  });
+
+  afterEach(() => {
+    cleanupFiles();
   });
 
   it("should show error when no agent name provided", () => {
@@ -259,7 +243,6 @@ describe("AgentRegistry", () => {
 
     expect(output).toContain(`Created agent: ${TEST_AGENT_NAME}`);
 
-    // Check agent JSON file
     const jsonPath = path.join(ROOT_DIR, "agents", `${TEST_AGENT_NAME}.agent.json`);
     expect(fs.existsSync(jsonPath)).toBe(true);
     const jsonContent = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
@@ -269,21 +252,18 @@ describe("AgentRegistry", () => {
     expect(jsonContent.traits).toContain("emoji-native");
     expect(jsonContent.inherits_from).toBe("base-agent");
 
-    // Check prompt file
     const promptPath = path.join(ROOT_DIR, "agents", `${TEST_AGENT_NAME}.prompt.txt`);
     expect(fs.existsSync(promptPath)).toBe(true);
     const promptContent = fs.readFileSync(promptPath, "utf-8");
     expect(promptContent).toContain("SYSTEM:");
     expect(promptContent).toContain("Test Agent Xyz");
 
-    // Check workflow file
     const workflowPath = path.join(ROOT_DIR, ".github", "workflows", `${TEST_AGENT_NAME}.workflow.yml`);
     expect(fs.existsSync(workflowPath)).toBe(true);
     const workflowContent = fs.readFileSync(workflowPath, "utf-8");
     expect(workflowContent).toContain("name: Test Agent Xyz Workflow");
     expect(workflowContent).toContain("workflow_dispatch");
 
-    // Check docs file
     const docPath = path.join(ROOT_DIR, "docs", "agents", `${TEST_AGENT_NAME}.mdx`);
     expect(fs.existsSync(docPath)).toBe(true);
     const docContent = fs.readFileSync(docPath, "utf-8");
@@ -294,7 +274,7 @@ describe("AgentRegistry", () => {
   it("should convert spaces in agent name to hyphens for agent id", () => {
     const agentNameWithSpaces = "my cool agent";
     const expectedId = "my-cool-agent";
-    
+
     try {
       const output = execSync(`node scripts/spawn-agent.js "${agentNameWithSpaces}"`, {
         cwd: ROOT_DIR,
@@ -305,7 +285,6 @@ describe("AgentRegistry", () => {
       const jsonPath = path.join(ROOT_DIR, "agents", `${expectedId}.agent.json`);
       expect(fs.existsSync(jsonPath)).toBe(true);
     } finally {
-      // Cleanup
       const paths = [
         path.join(ROOT_DIR, "agents", `${expectedId}.agent.json`),
         path.join(ROOT_DIR, "agents", `${expectedId}.prompt.txt`),

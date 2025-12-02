@@ -62,7 +62,7 @@ export class AgentBuilder {
    */
   withTrigger(emoji: string, action: string): AgentBuilder {
     this.agent.triggers = this.agent.triggers || [];
-    this.agent.triggers.push({ emoji, action });
+    (this.agent.triggers as (AgentTrigger | string)[]).push({ emoji, action });
     return this;
   }
   
@@ -213,8 +213,10 @@ export class AgentRegistry {
     if (this.agents.size === 0) {
       this.loadAll();
     }
-    return Array.from(this.agents.values()).filter(a => 
-      a.triggers.some(t => t.emoji === emoji)
+    return Array.from(this.agents.values()).filter(agent =>
+      agent.triggers.some((trigger: AgentTrigger | string) =>
+        typeof trigger === "string" ? trigger === emoji : trigger.emoji === emoji
+      )
     );
   }
   
@@ -226,7 +228,7 @@ export class AgentRegistry {
     if (!parent || !parent.childAgents) {
       return [];
     }
-    return parent.childAgents.map(id => this.get(id)).filter(Boolean) as Agent[];
+    return parent.childAgents.map((id: string) => this.get(id)).filter(Boolean) as Agent[];
   }
   
   /**
@@ -258,7 +260,7 @@ export class AgentRegistry {
   canSpawn(agentId: string): boolean {
     const agent = this.get(agentId);
     if (!agent) return false;
-    return agent.capabilities.some(c => c.name === "spawn-agent" && c.enabled);
+    return agent.capabilities?.some((c: AgentCapability) => c.name === "spawn-agent" && c.enabled) ?? false;
   }
 }
 

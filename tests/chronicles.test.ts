@@ -1,4 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import * as fs from "fs";
+import * as path from "path";
 import {
   createEpisodeId,
   formatEpisodeDigest,
@@ -6,12 +8,35 @@ import {
 } from "../src/types/chronicles";
 import {
   episode001,
-  getEpisodeById,
+  getEpisodeById as getRegistryEpisodeById,
   getLatestEpisode,
   getEpisodesByTag,
   getEpisodesByStatus,
   chronicleRegistry,
 } from "../chronicles/index";
+import {
+  readChronicles,
+  writeChronicles,
+  addEpisode,
+  getEpisodeById,
+  listEpisodes,
+  generateEpisodeMdx,
+  getNextEpisodeId,
+} from "../src/chronicles";
+import type { Chronicles, Episode, EpisodeFrontmatter } from "../src/chronicles/types";
+
+vi.mock("fs", () => ({
+  readFileSync: vi.fn(),
+  writeFileSync: vi.fn(),
+}));
+
+vi.mock("path", async () => {
+  const actual = await vi.importActual<typeof import("path")>("path");
+  return {
+    ...actual,
+    join: vi.fn((...args: string[]) => args.join("/")),
+  };
+});
 
 describe("chronicles types", () => {
   describe("createEpisodeId", () => {
@@ -33,7 +58,7 @@ describe("chronicles types", () => {
 
   describe("formatEpisodeDigest", () => {
     it("formats episode into PR comment markdown", () => {
-      const digest = formatEpisodeDigest(episode001);
+      const digest = formatEpisodeDigest(episode001 as ChronicleEpisode);
 
       expect(digest).toContain("LUCIDIA CINEMATIC UNIVERSE");
       expect(digest).toContain("THE CLONE AWAKENS");
@@ -72,34 +97,14 @@ describe("chronicles registry", () => {
       expect(chronicleRegistry.episodes).toContain(episode001);
       expect(chronicleRegistry.totalEpisodes).toBe(1);
       expect(chronicleRegistry.latestEpisodeId).toBe("001");
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import * as fs from "fs";
-import * as path from "path";
+    });
 
-// Mock fs module
-vi.mock("fs", () => ({
-  readFileSync: vi.fn(),
-  writeFileSync: vi.fn(),
-}));
-
-vi.mock("path", async () => {
-  const actual = await vi.importActual("path");
-  return {
-    ...actual,
-    join: vi.fn((...args: string[]) => args.join("/")),
-  };
+    it("fetches episode by id", () => {
+      const episode = getRegistryEpisodeById("001");
+      expect(episode).toBe(episode001);
+    });
+  });
 });
-
-import {
-  readChronicles,
-  writeChronicles,
-  addEpisode,
-  getEpisodeById,
-  listEpisodes,
-  generateEpisodeMdx,
-  getNextEpisodeId,
-} from "../src/chronicles";
-import type { Chronicles, Episode, EpisodeFrontmatter } from "../src/chronicles/types";
 
 describe("Chronicles", () => {
   const mockChronicles: Chronicles = {
@@ -208,8 +213,6 @@ describe("Chronicles", () => {
     it("returns empty array for non-matching status", () => {
       const episodes = getEpisodesByStatus("completed");
       expect(episodes).toHaveLength(0);
-      const result = getEpisodeById("episode-001");
-      expect(result).toEqual(mockChronicles.episodes[0]);
     });
 
     it("returns undefined when not found", () => {
@@ -242,7 +245,7 @@ describe("Chronicles", () => {
         voice: "/audio/test.mp3",
         transcript: true,
       };
-      const narrative = "> **\"This is Lucidia.\"**\n> Test narrative.";
+      const narrative = '> **"This is Lucidia."**\n> Test narrative.';
 
       const result = generateEpisodeMdx(frontmatter, narrative);
 
