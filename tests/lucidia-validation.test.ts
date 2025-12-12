@@ -40,6 +40,13 @@ describe("validateMetrics", () => {
     );
   });
 
+  it("throws ValidationError for array body", () => {
+    expect(() => validateMetrics([])).toThrow(ValidationError);
+    expect(() => validateMetrics([])).toThrow(
+      "Request body must be a valid metrics object"
+    );
+  });
+
   it("throws ValidationError for missing required field", () => {
     const incomplete = { ...validMetrics };
     delete (incomplete as Partial<Metrics>).escalations_last_3_days;

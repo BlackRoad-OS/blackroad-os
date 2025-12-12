@@ -20,7 +20,7 @@ export class ValidationError extends Error {
 
 /** Validate that metrics object contains all required fields (throws ValidationError on failure) */
 export function validateMetrics(metrics: unknown): asserts metrics is Metrics {
-  if (!metrics || typeof metrics !== "object") {
+  if (!metrics || typeof metrics !== "object" || Array.isArray(metrics)) {
     throw new ValidationError("Request body must be a valid metrics object");
   }
 
