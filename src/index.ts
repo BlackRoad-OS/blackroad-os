@@ -160,8 +160,10 @@ export async function createServer() {
   // Chronicles endpoints
   server.get("/api/chronicles", async () => {
     try {
+      // TODO: Consider caching the chronicles data to avoid reading from disk on every request
       const chroniclesData = JSON.parse(readFileSync(CHRONICLES_PATH, "utf-8"));
-      return { episodes: chroniclesData.episodes, total: chroniclesData.episodes.length };
+      const episodes = Array.isArray(chroniclesData.episodes) ? chroniclesData.episodes : [];
+      return { episodes, total: episodes.length };
     } catch (error) {
       console.error("Failed to read chronicles data:", error);
       return { episodes: [], total: 0 };
