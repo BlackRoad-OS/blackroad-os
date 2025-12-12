@@ -44,49 +44,43 @@ export default function ChroniclesPage() {
     window.location.href = `/chronicles/${episodeId}`;
   };
 
+  let content;
   if (loading) {
-    return (
-      <div>
-        <header className="header">
-          <h1>
-            <span>{"// "}</span>BlackRoad OS
-          </h1>
-          <nav className="nav-links">
-            <a href="/">Dashboard</a>
-            <a href="/chronicles" className="active">Chronicles</a>
-            <a href="/agents">Agents</a>
-            <a href="/api/health">Health</a>
-          </nav>
-        </header>
-        <main className="container">
-          <section className="section">
-            <p style={{ color: "var(--text-secondary)" }}>Loading chronicles...</p>
-          </section>
-        </main>
-      </div>
+    content = (
+      <section className="section">
+        <p style={{ color: "var(--text-secondary)" }}>Loading chronicles...</p>
+      </section>
     );
-  }
-
-  if (error) {
-    return (
-      <div>
-        <header className="header">
-          <h1>
-            <span>{"// "}</span>BlackRoad OS
-          </h1>
-          <nav className="nav-links">
-            <a href="/">Dashboard</a>
-            <a href="/chronicles" className="active">Chronicles</a>
-            <a href="/agents">Agents</a>
-            <a href="/api/health">Health</a>
-          </nav>
-        </header>
-        <main className="container">
-          <section className="section">
-            <p style={{ color: "var(--error)" }}>Error: {error}</p>
-          </section>
-        </main>
-      </div>
+  } else if (error) {
+    content = (
+      <section className="section">
+        <p style={{ color: "var(--accent-red)" }}>Error: {error}</p>
+      </section>
+    );
+  } else {
+    content = (
+      <section className="section">
+        <div className="section-header">
+          <h2 className="section-title">Lucidia Chronicles</h2>
+          <span style={{ color: "var(--text-secondary)", fontSize: "14px" }}>
+            {episodes.length} episodes
+          </span>
+        </div>
+        <p style={{ color: "var(--text-secondary)", marginBottom: "24px" }}>
+          The canonical narrative archive of BlackRoad-OS agent evolution.
+          Each episode documents the spawning, awakening, and mission of our autonomous agents.
+        </p>
+        <div className="chronicle-grid">
+          {episodes.map((episode) => (
+            <ChronicleCard
+              key={episode.id}
+              episode={episode}
+              onPlay={() => handlePlay(episode.id)}
+              onViewTranscript={() => handleViewTranscript(episode.id)}
+            />
+          ))}
+        </div>
+      </section>
     );
   }
 
@@ -103,31 +97,7 @@ export default function ChroniclesPage() {
           <a href="/api/health">Health</a>
         </nav>
       </header>
-
-      <main className="container">
-        <section className="section">
-          <div className="section-header">
-            <h2 className="section-title">Lucidia Chronicles</h2>
-            <span style={{ color: "var(--text-secondary)", fontSize: "14px" }}>
-              {episodes.length} episodes
-            </span>
-          </div>
-          <p style={{ color: "var(--text-secondary)", marginBottom: "24px" }}>
-            The canonical narrative archive of BlackRoad-OS agent evolution.
-            Each episode documents the spawning, awakening, and mission of our autonomous agents.
-          </p>
-          <div className="chronicle-grid">
-            {episodes.map((episode) => (
-              <ChronicleCard
-                key={episode.id}
-                episode={episode}
-                onPlay={() => handlePlay(episode.id)}
-                onViewTranscript={() => handleViewTranscript(episode.id)}
-              />
-            ))}
-          </div>
-        </section>
-      </main>
+      <main className="container">{content}</main>
     </div>
   );
 }
