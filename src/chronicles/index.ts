@@ -34,7 +34,7 @@ export function getEpisodeById(id: string): Episode | undefined {
       agent: registryEpisode.agentDesignation || "unknown",
       date: registryEpisode.date,
       mp3: registryEpisode.audioFile,
-      transcript: !!registryEpisode.contentPath,
+      transcript: typeof registryEpisode.contentPath === "string" && registryEpisode.contentPath.trim().length > 0,
     };
   }
   const chronicles = readChronicles();
