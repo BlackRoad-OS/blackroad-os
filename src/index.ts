@@ -1,4 +1,5 @@
 import Fastify from "fastify";
+import { z } from "zod";
 import { getBuildInfo } from "./utils/buildInfo";
 import {
   DigestVoiceRunner,
@@ -13,6 +14,19 @@ import type { Environment } from "./types";
 import { registerSampleJobProcessor } from "./jobs/sample.job";
 
 let runner: DigestVoiceRunner | null = null;
+
+// Validation schema for Metrics
+const MetricsSchema = z.object({
+  escalations_last_3_days: z.number(),
+  agent_load: z.number(),
+  blocked_prs: z.number(),
+  avg_review_time: z.number(),
+  unmapped_repos: z.number(),
+  repo_activity_score: z.number(),
+  open_issues: z.number(),
+  avg_issue_age: z.number(),
+  unowned_workflows: z.number(),
+});
 
 // Default Lucidia configuration
 const defaultSpawnConfig: SpawnRulesConfig = {
@@ -218,7 +232,23 @@ export async function createServer() {
 
   server.post<{ Body: Metrics }>("/api/lucidia/spawn", async (request, reply) => {
     try {
-      const metrics = request.body;
+      // Validate request body exists
+      if (!request.body) {
+        reply.status(400);
+        return { error: "Request body is required" };
+      }
+
+      // Validate metrics data
+      const validationResult = MetricsSchema.safeParse(request.body);
+      if (!validationResult.success) {
+        reply.status(400);
+        return {
+          error: "Invalid metrics data",
+          details: validationResult.error.errors,
+        };
+      }
+
+      const metrics = validationResult.data;
       const result = lucidia.spawn(metrics);
       return result;
     } catch (error) {
@@ -230,7 +260,23 @@ export async function createServer() {
 
   server.post<{ Body: Metrics }>("/api/lucidia/detect", async (request, reply) => {
     try {
-      const metrics = request.body;
+      // Validate request body exists
+      if (!request.body) {
+        reply.status(400);
+        return { error: "Request body is required" };
+      }
+
+      // Validate metrics data
+      const validationResult = MetricsSchema.safeParse(request.body);
+      if (!validationResult.success) {
+        reply.status(400);
+        return {
+          error: "Invalid metrics data",
+          details: validationResult.error.errors,
+        };
+      }
+
+      const metrics = validationResult.data;
       const result = lucidia.detect(metrics);
       return result;
     } catch (error) {
