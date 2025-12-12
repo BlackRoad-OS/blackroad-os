@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ChronicleCard } from "../../components/ChronicleCard";
 import type { ChronicleEpisode } from "../../src/types/chronicles";
 
@@ -69,6 +71,8 @@ const episodes: ChronicleEpisode[] = [
 ];
 
 export default function ChroniclesPage() {
+  const router = useRouter();
+
   const handlePlay = (episodeId: string) => {
     console.log("Playing episode:", episodeId);
     // In production: integrate with audio player
@@ -77,7 +81,7 @@ export default function ChroniclesPage() {
   const handleViewTranscript = (episodeId: string) => {
     console.log("Viewing transcript:", episodeId);
     // In production: navigate to episode detail page
-    window.location.href = `/chronicles/${episodeId}`;
+    router.push(`/chronicles/${episodeId}`);
   };
 
   return (
@@ -87,10 +91,10 @@ export default function ChroniclesPage() {
           <span>{"// "}</span>BlackRoad OS
         </h1>
         <nav className="nav-links">
-          <a href="/">Dashboard</a>
-          <a href="/chronicles" className="active">Chronicles</a>
-          <a href="/agents">Agents</a>
-          <a href="/api/health">Health</a>
+          <Link href="/">Dashboard</Link>
+          <Link href="/chronicles" className="active">Chronicles</Link>
+          <Link href="/agents">Agents</Link>
+          <Link href="/api/health">Health</Link>
         </nav>
       </header>
 

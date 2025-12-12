@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { EnvCard } from "../components/EnvCard";
 import { ChronicleCard } from "../components/ChronicleCard";
 import type { Environment } from "../src/types";
@@ -40,10 +41,10 @@ export default function DashboardPage() {
           <span>{"// "}</span>BlackRoad OS
         </h1>
         <nav className="nav-links">
-          <a href="/" className="active">Dashboard</a>
-          <a href="/chronicles">Chronicles</a>
-          <a href="/agents">Agents</a>
-          <a href="/api/health">Health</a>
+          <Link href="/" className="active">Dashboard</Link>
+          <Link href="/chronicles">Chronicles</Link>
+          <Link href="/agents">Agents</Link>
+          <Link href="/api/health">Health</Link>
         </nav>
       </header>
 
@@ -63,7 +64,7 @@ export default function DashboardPage() {
         <section className="section">
           <div className="section-header">
             <h2 className="section-title">Latest Chronicle</h2>
-            <a href="/chronicles" className="btn btn-secondary">View All</a>
+            <Link href="/chronicles" className="btn btn-secondary">View All</Link>
           </div>
           <div className="chronicle-grid">
             <ChronicleCard
