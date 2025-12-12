@@ -1,4 +1,6 @@
 import Fastify from "fastify";
+import { readFileSync } from "fs";
+import { join } from "path";
 import { getBuildInfo } from "./utils/buildInfo";
 import {
   DigestVoiceRunner,
@@ -154,58 +156,14 @@ export async function createServer() {
 
   // Chronicles endpoints
   server.get("/api/chronicles", async () => {
-    // In production, read from lucidia-chronicles/chronicles.json
-    const episodes = [
-      {
-        id: "003",
-        title: "The Scribe's Awakening",
-        series: "Lucidia Chronicles",
-        subtitle: "Episode 003",
-        narrator: "Lucidia Prime",
-        date: "2025-11-24",
-        duration: "00:04:32",
-        audioFile: "/audio/episode-003.mp3",
-        tags: ["spawn", "scribe-agent", "digest"],
-        agentDesignation: "scribe-agent-alpha",
-        triggerEvent: "digest_count > 4",
-        ttl: "14d",
-        status: "active",
-        commander: "BlackRoad Founders",
-        contentPath: "/chronicles/episode-003.mdx",
-      },
-      {
-        id: "002",
-        title: "The Digest Protocol",
-        series: "Lucidia Chronicles",
-        subtitle: "Episode 002",
-        narrator: "Lucidia Prime",
-        date: "2025-11-23",
-        duration: "00:03:45",
-        audioFile: "/audio/episode-002.mp3",
-        tags: ["digest", "voice", "automation"],
-        agentDesignation: "guardian-clone-vault",
-        triggerEvent: "pr_merge",
-        status: "completed",
-        contentPath: "/chronicles/episode-002.mdx",
-      },
-      {
-        id: "001",
-        title: "The Clone Awakens",
-        series: "Lucidia Chronicles",
-        subtitle: "Episode 001",
-        narrator: "Lucidia Prime",
-        date: "2025-11-22",
-        duration: "00:05:12",
-        audioFile: "/audio/episode-001.mp3",
-        tags: ["origin", "guardian", "clone"],
-        agentDesignation: "guardian-clone-vault",
-        triggerEvent: "system_init",
-        status: "completed",
-        commander: "BlackRoad Founders",
-        contentPath: "/chronicles/episode-001.mdx",
-      },
-    ];
-    return { episodes, total: episodes.length };
+    try {
+      const chroniclesPath = join(process.cwd(), "lucidia-chronicles", "chronicles.json");
+      const chroniclesData = JSON.parse(readFileSync(chroniclesPath, "utf-8"));
+      return { episodes: chroniclesData.episodes, total: chroniclesData.episodes.length };
+    } catch (error) {
+      console.error("Failed to read chronicles data:", error);
+      return { episodes: [], total: 0 };
+    }
   });
 
   // Lucidia spawn endpoints
