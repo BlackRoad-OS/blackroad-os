@@ -2,32 +2,17 @@
 builder = "NIXPACKS"
 
 [deploy]
-startCommand = "npm run start"
+startCommand = "npm start"
 healthcheckPath = "/health"
-restartPolicy = "on-failure"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
 
-[variables]
-SERVICE_NAME = "blackroad-os"
+[[services]]
+name = "blackroad-os"
+
+[services.env]
 PORT = "8080"
-ENVIRONMENT = "production"
-# railway.toml
-# Railway deployment configuration for blackroad-os
-
-[build]
-builder = "NIXPACKS"
-watch = ["src", "package.json"]
-
-[deploy]
-startCommand = "npx tsx src/index.ts"
-healthcheckPath = "/health"
-restartPolicy = "on-failure"
-maxRetries = 5
-
-[variables]
-SERVICE_NAME = "blackroad-os"
-PORT = "3000"
-ENVIRONMENT = "production"
-
-[resources]
-cpu = 1
-memory = 1024
+NODE_ENV = "production"
+REPO_NAME = "blackroad-os"
+ORG_NAME = "BlackRoad-OS"
