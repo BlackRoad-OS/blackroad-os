@@ -1,4 +1,5 @@
 import Fastify from "fastify";
+import { z } from "zod";
 import { getBuildInfo } from "./utils/buildInfo";
 import {
   DigestVoiceRunner,
@@ -13,6 +14,46 @@ import type { Environment } from "./types";
 import { registerSampleJobProcessor } from "./jobs/sample.job";
 
 let runner: DigestVoiceRunner | null = null;
+
+// Validation schema for Metrics
+const MetricsSchema = z.object({
+  escalations_last_3_days: z.number(),
+  agent_load: z.number(),
+  blocked_prs: z.number(),
+  avg_review_time: z.number(),
+  unmapped_repos: z.number(),
+  repo_activity_score: z.number(),
+  open_issues: z.number(),
+  avg_issue_age: z.number(),
+  unowned_workflows: z.number(),
+});
+
+/**
+ * Validates request body and returns validated Metrics or error response
+ */
+function validateMetrics(body: unknown): { success: true; data: Metrics } | { success: false; error: object } {
+  // Check if request body exists
+  if (!body) {
+    return {
+      success: false,
+      error: { error: "Request body is required" },
+    };
+  }
+
+  // Validate metrics data
+  const validationResult = MetricsSchema.safeParse(body);
+  if (!validationResult.success) {
+    return {
+      success: false,
+      error: {
+        error: "Invalid metrics data",
+        details: validationResult.error.errors,
+      },
+    };
+  }
+
+  return { success: true, data: validationResult.data };
+}
 
 // Default Lucidia configuration
 const defaultSpawnConfig: SpawnRulesConfig = {
@@ -218,8 +259,13 @@ export async function createServer() {
 
   server.post<{ Body: Metrics }>("/api/lucidia/spawn", async (request, reply) => {
     try {
-      const metrics = request.body;
-      const result = lucidia.spawn(metrics);
+      const validation = validateMetrics(request.body);
+      if (!validation.success) {
+        reply.status(400);
+        return validation.error;
+      }
+
+      const result = lucidia.spawn(validation.data);
       return result;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
@@ -230,8 +276,13 @@ export async function createServer() {
 
   server.post<{ Body: Metrics }>("/api/lucidia/detect", async (request, reply) => {
     try {
-      const metrics = request.body;
-      const result = lucidia.detect(metrics);
+      const validation = validateMetrics(request.body);
+      if (!validation.success) {
+        reply.status(400);
+        return validation.error;
+      }
+
+      const result = lucidia.detect(validation.data);
       return result;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
