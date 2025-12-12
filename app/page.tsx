@@ -22,9 +22,16 @@ export default function DashboardPage() {
     async function fetchLatestEpisode() {
       try {
         const response = await fetch("/api/chronicles");
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const data = await response.json();
         if (data.episodes && data.episodes.length > 0) {
-          setLatestEpisode(data.episodes[0]); // First episode is the latest
+          // Sort by date descending to get the latest episode
+          const sortedEpisodes = [...data.episodes].sort(
+            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+          );
+          setLatestEpisode(sortedEpisodes[0]);
         }
       } catch (error) {
         console.error("Failed to fetch latest episode:", error);

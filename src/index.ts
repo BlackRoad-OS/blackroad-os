@@ -16,6 +16,9 @@ import { registerSampleJobProcessor } from "./jobs/sample.job";
 
 let runner: DigestVoiceRunner | null = null;
 
+// Chronicles configuration
+const CHRONICLES_PATH = process.env.CHRONICLES_PATH || join(process.cwd(), "lucidia-chronicles", "chronicles.json");
+
 // Default Lucidia configuration
 const defaultSpawnConfig: SpawnRulesConfig = {
   version: "1.0.0",
@@ -157,8 +160,7 @@ export async function createServer() {
   // Chronicles endpoints
   server.get("/api/chronicles", async () => {
     try {
-      const chroniclesPath = join(process.cwd(), "lucidia-chronicles", "chronicles.json");
-      const chroniclesData = JSON.parse(readFileSync(chroniclesPath, "utf-8"));
+      const chroniclesData = JSON.parse(readFileSync(CHRONICLES_PATH, "utf-8"));
       return { episodes: chroniclesData.episodes, total: chroniclesData.episodes.length };
     } catch (error) {
       console.error("Failed to read chronicles data:", error);
