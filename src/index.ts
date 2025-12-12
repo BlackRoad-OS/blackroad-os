@@ -7,8 +7,64 @@ import {
   validateMetadata,
 } from "./digest";
 import type { PRMetadata, DigestRunnerConfig } from "./digest";
+import { createLucidia } from "./lucidia";
+import type { Metrics, SpawnRulesConfig } from "./lucidia";
+import type { Environment } from "./types";
+import { registerSampleJobProcessor } from "./jobs/sample.job";
 
 let runner: DigestVoiceRunner | null = null;
+
+// Default Lucidia configuration
+const defaultSpawnConfig: SpawnRulesConfig = {
+  version: "1.0.0",
+  settings: {
+    approval_required: true,
+    approver: "BlackRoad Founders",
+    default_ttl: "7d",
+    max_clones: 5,
+    cooldown_period: "24h",
+  },
+  rules: [
+    {
+      id: "escalation-surge",
+      name: "Escalation Surge Handler",
+      if: { escalations_last_3_days: ">10" },
+      then: {
+        spawn: "escalation-handler",
+        config: {
+          role: "sentinel",
+          ttl: "72h",
+          inherits_from: "guardian-agent",
+          description: "Handles surge in escalations",
+        },
+      },
+    },
+    {
+      id: "blocked-resolver",
+      name: "Blocked Issue Resolver",
+      if: { blocked_prs: ">5" },
+      then: {
+        spawn: "blocked-resolver",
+        config: {
+          role: "reviewer",
+          ttl: "48h",
+          inherits_from: "guardian-agent",
+          description: "Resolves blocked PRs",
+        },
+      },
+    },
+  ],
+};
+
+const lucidia = createLucidia(defaultSpawnConfig);
+
+// Mock environment data - in production, fetch from monitoring service
+const environments: Environment[] = [
+  { id: "prod-us-east", name: "Production US", region: "us-east-1", status: "healthy" },
+  { id: "prod-eu-west", name: "Production EU", region: "eu-west-1", status: "healthy" },
+  { id: "staging", name: "Staging", region: "us-west-2", status: "healthy" },
+  { id: "dev", name: "Development", region: "us-east-2", status: "healthy" },
+];
 
 function getRunner(): DigestVoiceRunner {
   if (!runner) {
@@ -71,15 +127,152 @@ export async function createServer() {
     return { success: true, config: digestRunner.getConfig() };
   });
 
+  // Environment status endpoint
+  server.get("/api/environments", async () => {
+    return { environments };
+  });
+
+  // Update environment status (for monitoring integration)
+  server.patch<{ Params: { id: string }; Body: { status: string } }>(
+    "/api/environments/:id",
+    async (request, reply) => {
+      const { id } = request.params;
+      const { status } = request.body;
+      const env = environments.find((e) => e.id === id);
+      if (!env) {
+        reply.status(404);
+        return { error: "Environment not found" };
+      }
+      if (!["healthy", "degraded", "down"].includes(status)) {
+        reply.status(400);
+        return { error: "Invalid status. Must be: healthy, degraded, or down" };
+      }
+      env.status = status as "healthy" | "degraded" | "down";
+      return { success: true, environment: env };
+    }
+  );
+
+  // Chronicles endpoints
+  server.get("/api/chronicles", async () => {
+    // In production, read from lucidia-chronicles/chronicles.json
+    const episodes = [
+      {
+        id: "003",
+        title: "The Scribe's Awakening",
+        series: "Lucidia Chronicles",
+        subtitle: "Episode 003",
+        narrator: "Lucidia Prime",
+        date: "2025-11-24",
+        duration: "00:04:32",
+        audioFile: "/audio/episode-003.mp3",
+        tags: ["spawn", "scribe-agent", "digest"],
+        agentDesignation: "scribe-agent-alpha",
+        triggerEvent: "digest_count > 4",
+        ttl: "14d",
+        status: "active",
+        commander: "BlackRoad Founders",
+        contentPath: "/chronicles/episode-003.mdx",
+      },
+      {
+        id: "002",
+        title: "The Digest Protocol",
+        series: "Lucidia Chronicles",
+        subtitle: "Episode 002",
+        narrator: "Lucidia Prime",
+        date: "2025-11-23",
+        duration: "00:03:45",
+        audioFile: "/audio/episode-002.mp3",
+        tags: ["digest", "voice", "automation"],
+        agentDesignation: "guardian-clone-vault",
+        triggerEvent: "pr_merge",
+        status: "completed",
+        contentPath: "/chronicles/episode-002.mdx",
+      },
+      {
+        id: "001",
+        title: "The Clone Awakens",
+        series: "Lucidia Chronicles",
+        subtitle: "Episode 001",
+        narrator: "Lucidia Prime",
+        date: "2025-11-22",
+        duration: "00:05:12",
+        audioFile: "/audio/episode-001.mp3",
+        tags: ["origin", "guardian", "clone"],
+        agentDesignation: "guardian-clone-vault",
+        triggerEvent: "system_init",
+        status: "completed",
+        commander: "BlackRoad Founders",
+        contentPath: "/chronicles/episode-001.mdx",
+      },
+    ];
+    return { episodes, total: episodes.length };
+  });
+
+  // Lucidia spawn endpoints
+  server.get("/api/lucidia/rules", async () => {
+    return {
+      settings: lucidia.getSettings(),
+      rules: lucidia.getRules(),
+    };
+  });
+
+  server.post<{ Body: Metrics }>("/api/lucidia/spawn", async (request, reply) => {
+    try {
+      const metrics = request.body;
+      const result = lucidia.spawn(metrics);
+      return result;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      reply.status(500);
+      return { error: message };
+    }
+  });
+
+  server.post<{ Body: Metrics }>("/api/lucidia/detect", async (request, reply) => {
+    try {
+      const metrics = request.body;
+      const result = lucidia.detect(metrics);
+      return result;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      reply.status(500);
+      return { error: message };
+    }
+  });
+
   return server;
+}
+
+// Initialize job workers if Redis is available
+function initializeJobWorkers() {
+  const redisHost = process.env.REDIS_HOST || "localhost";
+  const redisPort = Number(process.env.REDIS_PORT || 6379);
+
+  if (process.env.ENABLE_JOBS === "true") {
+    try {
+      const worker = registerSampleJobProcessor({ host: redisHost, port: redisPort });
+      console.log(`Job worker registered, connecting to Redis at ${redisHost}:${redisPort}`);
+      return worker;
+    } catch (error) {
+      console.warn("Failed to initialize job workers:", error);
+      return null;
+    }
+  }
+  return null;
 }
 
 if (require.main === module) {
   const port = Number(process.env.PORT || 8080);
+
+  // Initialize job workers
+  const jobWorker = initializeJobWorkers();
+
   createServer()
     .then((server) => server.listen({ port, host: "0.0.0.0" }))
     .then((address) => {
       console.log(`Server listening at ${address}`);
+      console.log(`Lucidia spawn system: ACTIVE`);
+      console.log(`Job workers: ${jobWorker ? "ENABLED" : "DISABLED (set ENABLE_JOBS=true)"}`);
     })
     .catch((err) => {
       console.error(err);

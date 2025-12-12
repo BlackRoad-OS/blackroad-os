@@ -27,7 +27,15 @@ export function addEpisode(episode: Episode): Chronicles {
 export function getEpisodeById(id: string): Episode | undefined {
   const registryEpisode = getRegistryEpisodeById(id);
   if (registryEpisode) {
-    return registryEpisode as Episode;
+    // Convert ChronicleEpisode (from types/chronicles) to Episode format
+    return {
+      id: registryEpisode.id,
+      title: registryEpisode.title,
+      agent: registryEpisode.agentDesignation || "unknown",
+      date: registryEpisode.date,
+      mp3: registryEpisode.audioFile,
+      transcript: !!registryEpisode.contentPath,
+    };
   }
   const chronicles = readChronicles();
   const normalizedId = id.startsWith("episode-") ? id : `episode-${id}`;
