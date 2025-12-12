@@ -28,6 +28,33 @@ const MetricsSchema = z.object({
   unowned_workflows: z.number(),
 });
 
+/**
+ * Validates request body and returns validated Metrics or error response
+ */
+function validateMetrics(body: unknown): { success: true; data: Metrics } | { success: false; error: object } {
+  // Check if request body exists
+  if (!body) {
+    return {
+      success: false,
+      error: { error: "Request body is required" },
+    };
+  }
+
+  // Validate metrics data
+  const validationResult = MetricsSchema.safeParse(body);
+  if (!validationResult.success) {
+    return {
+      success: false,
+      error: {
+        error: "Invalid metrics data",
+        details: validationResult.error.errors,
+      },
+    };
+  }
+
+  return { success: true, data: validationResult.data };
+}
+
 // Default Lucidia configuration
 const defaultSpawnConfig: SpawnRulesConfig = {
   version: "1.0.0",
@@ -232,24 +259,13 @@ export async function createServer() {
 
   server.post<{ Body: Metrics }>("/api/lucidia/spawn", async (request, reply) => {
     try {
-      // Validate request body exists
-      if (!request.body) {
+      const validation = validateMetrics(request.body);
+      if (!validation.success) {
         reply.status(400);
-        return { error: "Request body is required" };
+        return validation.error;
       }
 
-      // Validate metrics data
-      const validationResult = MetricsSchema.safeParse(request.body);
-      if (!validationResult.success) {
-        reply.status(400);
-        return {
-          error: "Invalid metrics data",
-          details: validationResult.error.errors,
-        };
-      }
-
-      const metrics = validationResult.data;
-      const result = lucidia.spawn(metrics);
+      const result = lucidia.spawn(validation.data);
       return result;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
@@ -260,24 +276,13 @@ export async function createServer() {
 
   server.post<{ Body: Metrics }>("/api/lucidia/detect", async (request, reply) => {
     try {
-      // Validate request body exists
-      if (!request.body) {
+      const validation = validateMetrics(request.body);
+      if (!validation.success) {
         reply.status(400);
-        return { error: "Request body is required" };
+        return validation.error;
       }
 
-      // Validate metrics data
-      const validationResult = MetricsSchema.safeParse(request.body);
-      if (!validationResult.success) {
-        reply.status(400);
-        return {
-          error: "Invalid metrics data",
-          details: validationResult.error.errors,
-        };
-      }
-
-      const metrics = validationResult.data;
-      const result = lucidia.detect(metrics);
+      const result = lucidia.detect(validation.data);
       return result;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
