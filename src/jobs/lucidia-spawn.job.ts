@@ -93,9 +93,8 @@ export function registerLucidiaSpawnProcessor(
   const worker = new Worker<SpawnJobData, SpawnJobResult>(
     LUCIDIA_SPAWN_QUEUE,
     async (job) => {
-      console.log(`[Lucidia] Processing spawn job ${job.id}`);
-
       const { metrics, triggeredBy } = job.data;
+      console.log(`[Lucidia] Processing spawn job ${job.id} with metrics: ${JSON.stringify(metrics)}`);
       const spawnOutput = lucidia.spawn(metrics);
 
       if (!spawnOutput.result.matched) {
