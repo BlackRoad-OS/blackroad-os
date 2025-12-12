@@ -1,17 +1,10 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { EnvCard } from "../components/EnvCard";
 import { ChronicleCard } from "../components/ChronicleCard";
 import type { Environment } from "../src/types";
 import type { ChronicleEpisode } from "../src/types/chronicles";
-
-// Sample environment data - in production, fetch from /api/environments
-const environments: Environment[] = [
-  { id: "prod-us-east", name: "Production US", region: "us-east-1", status: "healthy" },
-  { id: "prod-eu-west", name: "Production EU", region: "eu-west-1", status: "healthy" },
-  { id: "staging", name: "Staging", region: "us-west-2", status: "degraded" },
-  { id: "dev", name: "Development", region: "us-east-2", status: "healthy" },
-];
 
 // Sample chronicle episode - in production, fetch from /api/chronicles
 const sampleEpisode: ChronicleEpisode = {
@@ -33,6 +26,32 @@ const sampleEpisode: ChronicleEpisode = {
 };
 
 export default function DashboardPage() {
+  const [environments, setEnvironments] = useState<Environment[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchEnvironments = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await fetch("/api/environments");
+      if (!response.ok) {
+        throw new Error(`Failed to fetch environments: ${response.statusText}`);
+      }
+      const data = await response.json();
+      setEnvironments(data.environments || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load environments");
+      console.error("Error fetching environments:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchEnvironments();
+  }, []);
+
   return (
     <div>
       <header className="header">
@@ -51,12 +70,29 @@ export default function DashboardPage() {
         <section className="section">
           <div className="section-header">
             <h2 className="section-title">Environment Status</h2>
-            <button className="btn btn-secondary">Refresh</button>
+            <button className="btn btn-secondary" onClick={fetchEnvironments} disabled={isLoading}>
+              {isLoading ? "Loading..." : "Refresh"}
+            </button>
           </div>
+          {error && (
+            <div style={{ padding: "12px", marginBottom: "16px", background: "var(--error-bg, #fee)", color: "var(--error-text, #c00)", borderRadius: "4px" }}>
+              {error}
+            </div>
+          )}
           <div className="grid grid-cols-2">
-            {environments.map((env) => (
-              <EnvCard key={env.id} env={env} />
-            ))}
+            {isLoading && environments.length === 0 ? (
+              <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "24px", color: "var(--text-secondary)" }}>
+                Loading environments...
+              </div>
+            ) : environments.length === 0 ? (
+              <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "24px", color: "var(--text-secondary)" }}>
+                No environments found
+              </div>
+            ) : (
+              environments.map((env) => (
+                <EnvCard key={env.id} env={env} />
+              ))
+            )}
           </div>
         </section>
 
