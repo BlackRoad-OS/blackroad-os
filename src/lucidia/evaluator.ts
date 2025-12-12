@@ -10,6 +10,46 @@ import type {
   SpawnEvaluationResult,
 } from "./types";
 
+/** Custom error for validation failures */
+export class ValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ValidationError";
+  }
+}
+
+/** Validate that metrics object contains all required fields */
+export function validateMetrics(metrics: unknown): metrics is Metrics {
+  if (!metrics || typeof metrics !== "object") {
+    throw new ValidationError("Request body must be a valid metrics object");
+  }
+
+  const metricsObj = metrics as Record<string, unknown>;
+
+  const requiredFields: (keyof Metrics)[] = [
+    "escalations_last_3_days",
+    "agent_load",
+    "blocked_prs",
+    "avg_review_time",
+    "unmapped_repos",
+    "repo_activity_score",
+    "open_issues",
+    "avg_issue_age",
+    "unowned_workflows",
+  ];
+
+  for (const field of requiredFields) {
+    if (!(field in metricsObj)) {
+      throw new ValidationError(`Missing required metrics field: ${field}`);
+    }
+    if (typeof metricsObj[field] !== "number") {
+      throw new ValidationError(`Metrics field '${field}' must be a number`);
+    }
+  }
+
+  return true;
+}
+
 /** Parse duration string to hours (e.g., "48h" -> 48, "7d" -> 168) */
 export function parseDuration(duration: string): number {
   const match = duration.match(/^(\d+)(h|d)$/);
