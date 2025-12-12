@@ -1,74 +1,38 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { ChronicleCard } from "../../components/ChronicleCard";
 import type { ChronicleEpisode } from "../../src/types/chronicles";
 
-// Sample chronicle episodes - in production, fetch from /api/chronicles
-const episodes: ChronicleEpisode[] = [
-  {
-    id: "003",
-    title: "The Scribe's Awakening",
-    series: "Lucidia Chronicles",
-    subtitle: "Episode 003",
-    narrator: "Lucidia Prime",
-    date: "2025-11-24",
-    duration: "00:04:32",
-    audioFile: "/audio/episode-003.mp3",
-    tags: ["spawn", "scribe-agent", "digest"],
-    agentDesignation: "scribe-agent-alpha",
-    triggerEvent: "digest_count > 4",
-    ttl: "14d",
-    status: "active",
-    commander: "BlackRoad Founders",
-    contentPath: "/chronicles/episode-003.mdx",
-  },
-  {
-    id: "002",
-    title: "The Digest Protocol",
-    series: "Lucidia Chronicles",
-    subtitle: "Episode 002",
-    narrator: "Lucidia Prime",
-    date: "2025-11-23",
-    duration: "00:03:45",
-    audioFile: "/audio/episode-002.mp3",
-    tags: ["digest", "voice", "automation"],
-    agentDesignation: "guardian-clone-vault",
-    triggerEvent: "pr_merge",
-    status: "completed",
-    contentPath: "/chronicles/episode-002.mdx",
-  },
-  {
-    id: "001",
-    title: "The Clone Awakens",
-    series: "Lucidia Chronicles",
-    subtitle: "Episode 001",
-    narrator: "Lucidia Prime",
-    date: "2025-11-22",
-    duration: "00:05:12",
-    audioFile: "/audio/episode-001.mp3",
-    tags: ["origin", "guardian", "clone"],
-    agentDesignation: "guardian-clone-vault",
-    triggerEvent: "system_init",
-    status: "completed",
-    commander: "BlackRoad Founders",
-    contentPath: "/chronicles/episode-001.mdx",
-  },
-  {
-    id: "000",
-    title: "BlackRoad Origin",
-    series: "Lucidia Chronicles",
-    subtitle: "Episode 000",
-    narrator: "The Architect",
-    date: "2025-11-21",
-    duration: "00:06:00",
-    audioFile: "/audio/episode-000.mp3",
-    tags: ["origin", "blackroad", "founding"],
-    status: "archived",
-    contentPath: "/chronicles/episode-000.mdx",
-  },
-];
+interface ChroniclesResponse {
+  episodes: ChronicleEpisode[];
+  totalEpisodes: number;
+}
 
 export default function ChroniclesPage() {
+  const [episodes, setEpisodes] = useState<ChronicleEpisode[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchEpisodes() {
+      try {
+        const response = await fetch("/api/chronicles");
+        if (!response.ok) {
+          throw new Error("Failed to fetch episodes");
+        }
+        const data: ChroniclesResponse = await response.json();
+        setEpisodes(data.episodes);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchEpisodes();
+  }, []);
+
   const handlePlay = (episodeId: string) => {
     console.log("Playing episode:", episodeId);
     // In production: integrate with audio player
@@ -79,6 +43,52 @@ export default function ChroniclesPage() {
     // In production: navigate to episode detail page
     window.location.href = `/chronicles/${episodeId}`;
   };
+
+  if (loading) {
+    return (
+      <div>
+        <header className="header">
+          <h1>
+            <span>{"// "}</span>BlackRoad OS
+          </h1>
+          <nav className="nav-links">
+            <a href="/">Dashboard</a>
+            <a href="/chronicles" className="active">Chronicles</a>
+            <a href="/agents">Agents</a>
+            <a href="/api/health">Health</a>
+          </nav>
+        </header>
+        <main className="container">
+          <section className="section">
+            <p style={{ color: "var(--text-secondary)" }}>Loading chronicles...</p>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div>
+        <header className="header">
+          <h1>
+            <span>{"// "}</span>BlackRoad OS
+          </h1>
+          <nav className="nav-links">
+            <a href="/">Dashboard</a>
+            <a href="/chronicles" className="active">Chronicles</a>
+            <a href="/agents">Agents</a>
+            <a href="/api/health">Health</a>
+          </nav>
+        </header>
+        <main className="container">
+          <section className="section">
+            <p style={{ color: "var(--error)" }}>Error: {error}</p>
+          </section>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div>
