@@ -18,8 +18,8 @@ export class ValidationError extends Error {
   }
 }
 
-/** Validate that metrics object contains all required fields */
-export function validateMetrics(metrics: unknown): metrics is Metrics {
+/** Validate that metrics object contains all required fields (throws ValidationError on failure) */
+export function validateMetrics(metrics: unknown): asserts metrics is Metrics {
   if (!metrics || typeof metrics !== "object") {
     throw new ValidationError("Request body must be a valid metrics object");
   }
@@ -46,8 +46,6 @@ export function validateMetrics(metrics: unknown): metrics is Metrics {
       throw new ValidationError(`Metrics field '${field}' must be a number`);
     }
   }
-
-  return true;
 }
 
 /** Parse duration string to hours (e.g., "48h" -> 48, "7d" -> 168) */
