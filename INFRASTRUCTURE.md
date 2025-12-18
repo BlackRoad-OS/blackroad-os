@@ -312,7 +312,7 @@ cloudflared tunnel login
 cloudflared tunnel create pi5-alpha
 # This outputs a tunnel ID and creates credentials file
 
-# Note the tunnel ID (e.g., a]1234abcd-5678-efgh-9012-ijklmnop3456)
+# Note the tunnel ID (e.g., a1234abcd-5678-efgh-9012-ijklmnop3456)
 ```
 
 **Create tunnel config:**
