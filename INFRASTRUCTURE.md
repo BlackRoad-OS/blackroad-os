@@ -870,7 +870,7 @@ docker run --runtime nvidia --gpus all \
 
 ```bash
 # Install Ollama
-curl -fsSL https://ollama.ai/install.sh | sh
+curl -fsSL https://ollama.com/install.sh | sh
 
 # Pull a model
 ollama pull qwen2.5:7b
