@@ -368,8 +368,8 @@ export default {
     // Route based on domain
     const routes = {
       'api.blackroad.io': 'https://pi5-alpha.tail<xxxxx>.ts.net:8000',
-      'agents.blackroad.io': 'https://pi5-beta.tailxxxxx.ts.net:8001',
-      'llm.blackroad.io': 'https://jetson-prime.tailxxxxx.ts.net:8080',
+      'agents.blackroad.io': 'https://pi5-beta.tail<xxxxx>.ts.net:8001',
+      'llm.blackroad.io': 'https://jetson-prime.tail<xxxxx>.ts.net:8080',
     };
     
     const backend = routes[hostname];
