@@ -43,17 +43,8 @@ export function scanRedLightTemplates(cwd = process.cwd()): RedLightTemplate[] {
     
     if (!stats.isFile()) continue
 
-    // Parse category from filename patterns
-    let category: RedLightTemplate['category'] = 'website'
-    if (file.includes('world') || file.includes('earth') || file.includes('planet')) {
-      category = 'world'
-    } else if (file.includes('animation') || file.includes('motion')) {
-      category = 'animation'
-    } else if (file.includes('game')) {
-      category = 'game'
-    } else if (file.includes('schematiq')) {
-      category = 'design'
-    }
+    // Parse category from filename
+    const category = getCategoryFromFilename(file)
 
     // Generate ID from filename
     const id = file.replace(/\.html$/, '').replace(/[^a-z0-9-]/gi, '-')
@@ -252,7 +243,7 @@ export function formatRedLightTemplates(cwd = process.cwd()): string {
 /**
  * Get emoji for template category
  */
-function getCategoryEmoji(category: string): string {
+export function getCategoryEmoji(category: string): string {
   const emojis: Record<string, string> = {
     world: '🌍',
     website: '🌐',
@@ -263,4 +254,27 @@ function getCategoryEmoji(category: string): string {
     visual: '🖼️',
   }
   return emojis[category] || '📄'
+}
+
+/**
+ * Determine template category from filename
+ */
+function getCategoryFromFilename(filename: string): RedLightTemplate['category'] {
+  const lowerFilename = filename.toLowerCase()
+  
+  // Category detection patterns
+  if (lowerFilename.includes('world') || lowerFilename.includes('earth') || lowerFilename.includes('planet')) {
+    return 'world'
+  }
+  if (lowerFilename.includes('animation') || lowerFilename.includes('motion')) {
+    return 'animation'
+  }
+  if (lowerFilename.includes('game')) {
+    return 'game'
+  }
+  if (lowerFilename.includes('schematiq')) {
+    return 'design'
+  }
+  
+  return 'website'
 }

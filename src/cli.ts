@@ -10,6 +10,7 @@ import {
   formatRedLightTemplates,
   enrichManifestWithTrinity,
   getRedLightTemplate,
+  getCategoryEmoji,
 } from './trinity.js'
 
 function usage() {
@@ -105,19 +106,6 @@ function trinityInfo(templateId?: string) {
   }
 
   process.stdout.write(lines.join('\n') + '\n')
-}
-
-function getCategoryEmoji(category: string): string {
-  const emojis: Record<string, string> = {
-    world: '🌍',
-    website: '🌐',
-    animation: '✨',
-    design: '🎨',
-    game: '🎮',
-    app: '📱',
-    visual: '🖼️',
-  }
-  return emojis[category] || '📄'
 }
 
 function main() {
