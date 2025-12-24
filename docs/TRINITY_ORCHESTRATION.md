@@ -49,6 +49,24 @@ Lists all available RedLight visual templates organized by category:
 - 🎨 Design templates (design systems, components)
 - 🎮 Game templates (interactive games)
 
+### Get Template Information
+
+```bash
+npm run br-orchestrate trinity:info <template-id>
+```
+
+Shows detailed information about a specific template:
+- Template name and category
+- File location
+- File size
+- Tags
+- Deployment URL (if deployed)
+
+Example:
+```bash
+npm run br-orchestrate trinity:info blackroad-earth
+```
+
 ### Render with Trinity Integration
 
 ```bash

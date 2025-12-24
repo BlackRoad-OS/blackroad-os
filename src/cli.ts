@@ -9,10 +9,11 @@ import {
   formatTrinityStatus,
   formatRedLightTemplates,
   enrichManifestWithTrinity,
+  getRedLightTemplate,
 } from './trinity.js'
 
 function usage() {
-  return `br-orchestrate <command>\n\nCommands:\n  lint            Validate orchestra.yml with the schema\n  render          Emit .matrix.json, .envrc, README.md\n  trinity         Show Trinity system status\n  trinity:status  Show detailed Trinity status\n  trinity:list    List RedLight templates\n`
+  return `br-orchestrate <command>\n\nCommands:\n  lint            Validate orchestra.yml with the schema\n  render          Emit .matrix.json, .envrc, README.md\n  trinity         Show Trinity system status\n  trinity:status  Show detailed Trinity status\n  trinity:list    List RedLight templates\n  trinity:info <id>  Show details for a specific template\n`
 }
 
 function lint(manifestPath?: string) {
@@ -53,8 +54,74 @@ function trinityList() {
   process.stdout.write(formatRedLightTemplates() + '\n')
 }
 
+function trinityInfo(templateId?: string) {
+  if (!templateId) {
+    process.stderr.write('❌ Template ID required\n')
+    process.stderr.write('Usage: br-orchestrate trinity:info <template-id>\n')
+    process.exitCode = 1
+    return
+  }
+
+  if (!hasTrinity()) {
+    process.stderr.write('❌ Trinity system not found in this repository\n')
+    process.exitCode = 1
+    return
+  }
+
+  const template = getRedLightTemplate(templateId)
+  if (!template) {
+    process.stderr.write(`❌ Template not found: ${templateId}\n`)
+    process.exitCode = 1
+    return
+  }
+
+  const emoji = getCategoryEmoji(template.category)
+  const lines = [
+    `${emoji} ${template.name}`,
+    '',
+    `ID: ${template.id}`,
+    `Category: ${template.category}`,
+    `File: ${template.file}`,
+  ]
+
+  if (template.description) {
+    lines.push(`Description: ${template.description}`)
+  }
+
+  if (template.deployed_url) {
+    lines.push(`Deployed: ${template.deployed_url}`)
+  }
+
+  if (template.tags.length > 0) {
+    lines.push(`Tags: ${template.tags.join(', ')}`)
+  }
+
+  // Check if file exists and show size
+  const filePath = path.join(process.cwd(), template.file)
+  if (fs.existsSync(filePath)) {
+    const stats = fs.statSync(filePath)
+    const sizeKB = (stats.size / 1024).toFixed(2)
+    lines.push(`Size: ${sizeKB} KB`)
+  }
+
+  process.stdout.write(lines.join('\n') + '\n')
+}
+
+function getCategoryEmoji(category: string): string {
+  const emojis: Record<string, string> = {
+    world: '🌍',
+    website: '🌐',
+    animation: '✨',
+    design: '🎨',
+    game: '🎮',
+    app: '📱',
+    visual: '🖼️',
+  }
+  return emojis[category] || '📄'
+}
+
 function main() {
-  const [, , command, manifestPath] = process.argv
+  const [, , command, ...args] = process.argv
   if (!command || command === '--help' || command === '-h') {
     process.stdout.write(usage())
     return
@@ -65,11 +132,11 @@ function main() {
     }
   }
   if (command === 'lint') {
-    lint(manifestPath)
+    lint(args[0])
     return
   }
   if (command === 'render') {
-    runRender(manifestPath)
+    runRender(args[0])
     return
   }
   if (command === 'trinity' || command === 'trinity:status') {
@@ -78,6 +145,10 @@ function main() {
   }
   if (command === 'trinity:list') {
     trinityList()
+    return
+  }
+  if (command === 'trinity:info') {
+    trinityInfo(args[0])
     return
   }
   process.stderr.write(`Unknown command: ${command}\n`)
