@@ -70,7 +70,7 @@ source .trinity/yellowlight/scripts/trinity-codex-integration.sh
 **When to use:** 3D worlds, landing pages, animations, design systems, UI/UX
 
 **Brand Guidelines:**
-- **Colors:** #FF9D00 → #FF6B00 → #FF0066 → #FF006B → #D600AA → #7700FF → #0066FF
+- **Colors:** #FF9D00 (Amber) → #FF6B00 (Orange) → #FF0066 (Pink) → #FF006B (Magenta) → #D600AA (Purple) → #7700FF (Violet) → #0066FF (Blue)
 - **Typography:** SF Pro Display, -apple-system
 - **Layout:** Golden ratio (φ = 1.618)
 

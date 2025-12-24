@@ -68,7 +68,7 @@ Quick guide for selecting the right issue template based on your task.
 - "Optimize Three.js world performance"
 
 **Brand Standards:**
-- Colors: #FF9D00 → #FF6B00 → #FF0066 → #D600AA → #7700FF → #0066FF
+- Colors: #FF9D00 → #FF6B00 → #FF0066 → #FF006B → #D600AA → #7700FF → #0066FF
 - Typography: SF Pro Display, -apple-system
 - Layout: Golden ratio (φ = 1.618)
 
