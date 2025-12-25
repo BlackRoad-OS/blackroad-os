@@ -3,3 +3,6 @@ contact_links:
   - name: BlackRoad OS Docs
     url: https://github.com/BlackRoad-OS/blackroad-os-docs
     about: Check the docs before opening an issue
+  - name: 🌈 Light Trinity System
+    url: https://github.com/BlackRoad-OS/blackroad-os/blob/main/.trinity/README.md
+    about: Learn about GreenLight, YellowLight, and RedLight systems
