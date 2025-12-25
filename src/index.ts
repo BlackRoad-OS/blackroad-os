@@ -17,31 +17,32 @@ import { registerSampleJobProcessor } from "./jobs/sample.job";
 let runner: DigestVoiceRunner | null = null;
 
 // Chronicles configuration with security validation
-const CHRONICLES_BASE_DIR = join(process.cwd(), "lucidia-chronicles");
+const CHRONICLES_BASE_DIR = resolve(join(process.cwd(), "lucidia-chronicles"));
 const CHRONICLES_FILENAME = process.env.CHRONICLES_PATH || "chronicles.json";
 
-// Validate that the filename doesn't contain path traversal attempts
-if (CHRONICLES_FILENAME.includes("..") || CHRONICLES_FILENAME.includes("/") || CHRONICLES_FILENAME.includes("\\")) {
-  throw new Error("Invalid CHRONICLES_PATH: path traversal not allowed");
+// Validate that the resolved path stays within the base directory
+const resolvedPath = resolve(join(CHRONICLES_BASE_DIR, CHRONICLES_FILENAME));
+if (!resolvedPath.startsWith(CHRONICLES_BASE_DIR)) {
+  throw new Error("Invalid CHRONICLES_PATH: path must be within lucidia-chronicles directory");
 }
 
-const CHRONICLES_PATH = join(CHRONICLES_BASE_DIR, CHRONICLES_FILENAME);
+const CHRONICLES_PATH = resolvedPath;
 
 // Validate episodes conform to ChronicleEpisode interface
 function validateEpisode(episode: any): boolean {
-  const requiredFields = ["id", "title", "series", "subtitle", "narrator", "date", "duration", "audioFile", "tags", "status", "contentPath"];
-  const validStatuses = ["awaiting-confirmation", "active", "completed", "archived", "expired"];
-  
-  // Check required fields exist and have correct types
-  if (!requiredFields.every(field => episode[field] !== undefined && episode[field] !== null)) {
-    return false;
-  }
-  
-  if (typeof episode.id !== "string" || typeof episode.title !== "string" || 
-      typeof episode.series !== "string" || typeof episode.subtitle !== "string" ||
-      typeof episode.narrator !== "string" || typeof episode.date !== "string" ||
-      typeof episode.duration !== "string" || typeof episode.audioFile !== "string" ||
-      typeof episode.contentPath !== "string") {
+  // Type guards for required fields - mirrors ChronicleEpisode interface
+  const hasRequiredStringFields = 
+    typeof episode.id === "string" &&
+    typeof episode.title === "string" &&
+    typeof episode.series === "string" &&
+    typeof episode.subtitle === "string" &&
+    typeof episode.narrator === "string" &&
+    typeof episode.date === "string" &&
+    typeof episode.duration === "string" &&
+    typeof episode.audioFile === "string" &&
+    typeof episode.contentPath === "string";
+    
+  if (!hasRequiredStringFields) {
     return false;
   }
   
@@ -49,6 +50,7 @@ function validateEpisode(episode: any): boolean {
     return false;
   }
   
+  const validStatuses = ["awaiting-confirmation", "active", "completed", "archived", "expired"];
   if (!validStatuses.includes(episode.status)) {
     return false;
   }
