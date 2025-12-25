@@ -27,11 +27,20 @@ export default function DashboardPage() {
         }
         const data = await response.json();
         if (data.episodes && data.episodes.length > 0) {
-          // Sort by date descending to get the latest episode
-          const sortedEpisodes = [...data.episodes].sort(
-            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-          );
-          setLatestEpisode(sortedEpisodes[0]);
+          // Filter out episodes with invalid dates and sort by date descending to get the latest episode
+          const episodesWithValidDates = data.episodes
+            .map((episode: ChronicleEpisode) => {
+              const time = new Date(episode.date).getTime();
+              return Number.isNaN(time) ? null : { episode, time };
+            })
+            .filter((entry: any) => entry !== null) as { episode: ChronicleEpisode; time: number }[];
+
+          if (episodesWithValidDates.length > 0) {
+            episodesWithValidDates.sort((a, b) => b.time - a.time);
+            setLatestEpisode(episodesWithValidDates[0].episode);
+          } else {
+            console.warn("No episodes with valid dates were returned from /api/chronicles");
+          }
         }
       } catch (error) {
         console.error("Failed to fetch latest episode:", error);

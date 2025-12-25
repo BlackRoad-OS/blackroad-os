@@ -1,6 +1,6 @@
 import Fastify from "fastify";
-import { readFileSync } from "fs";
-import { join } from "path";
+import { readFile } from "fs/promises";
+import { join, resolve } from "path";
 import { getBuildInfo } from "./utils/buildInfo";
 import {
   DigestVoiceRunner,
@@ -16,8 +16,51 @@ import { registerSampleJobProcessor } from "./jobs/sample.job";
 
 let runner: DigestVoiceRunner | null = null;
 
-// Chronicles configuration
-const CHRONICLES_PATH = process.env.CHRONICLES_PATH || join(process.cwd(), "lucidia-chronicles", "chronicles.json");
+// Chronicles configuration with security validation
+const CHRONICLES_BASE_DIR = join(process.cwd(), "lucidia-chronicles");
+const CHRONICLES_FILENAME = process.env.CHRONICLES_PATH || "chronicles.json";
+
+// Validate that the filename doesn't contain path traversal attempts
+if (CHRONICLES_FILENAME.includes("..") || CHRONICLES_FILENAME.includes("/") || CHRONICLES_FILENAME.includes("\\")) {
+  throw new Error("Invalid CHRONICLES_PATH: path traversal not allowed");
+}
+
+const CHRONICLES_PATH = join(CHRONICLES_BASE_DIR, CHRONICLES_FILENAME);
+
+// Validate episodes conform to ChronicleEpisode interface
+function validateEpisode(episode: any): boolean {
+  const requiredFields = ["id", "title", "series", "subtitle", "narrator", "date", "duration", "audioFile", "tags", "status", "contentPath"];
+  const validStatuses = ["awaiting-confirmation", "active", "completed", "archived", "expired"];
+  
+  // Check required fields exist and have correct types
+  if (!requiredFields.every(field => episode[field] !== undefined && episode[field] !== null)) {
+    return false;
+  }
+  
+  if (typeof episode.id !== "string" || typeof episode.title !== "string" || 
+      typeof episode.series !== "string" || typeof episode.subtitle !== "string" ||
+      typeof episode.narrator !== "string" || typeof episode.date !== "string" ||
+      typeof episode.duration !== "string" || typeof episode.audioFile !== "string" ||
+      typeof episode.contentPath !== "string") {
+    return false;
+  }
+  
+  if (!Array.isArray(episode.tags) || !episode.tags.every((tag: any) => typeof tag === "string")) {
+    return false;
+  }
+  
+  if (!validStatuses.includes(episode.status)) {
+    return false;
+  }
+  
+  // Validate date format
+  const dateObj = new Date(episode.date);
+  if (isNaN(dateObj.getTime())) {
+    return false;
+  }
+  
+  return true;
+}
 
 // Default Lucidia configuration
 const defaultSpawnConfig: SpawnRulesConfig = {
@@ -158,15 +201,31 @@ export async function createServer() {
   );
 
   // Chronicles endpoints
-  server.get("/api/chronicles", async () => {
+  server.get("/api/chronicles", async (request, reply) => {
     try {
       // TODO: Consider caching the chronicles data to avoid reading from disk on every request
-      const chroniclesData = JSON.parse(readFileSync(CHRONICLES_PATH, "utf-8"));
-      const episodes = Array.isArray(chroniclesData.episodes) ? chroniclesData.episodes : [];
-      return { episodes, total: episodes.length };
+      const fileContent = await readFile(CHRONICLES_PATH, "utf-8");
+      const chroniclesData = JSON.parse(fileContent);
+      
+      if (!Array.isArray(chroniclesData.episodes)) {
+        reply.status(500);
+        return { error: "Invalid chronicles data structure: episodes must be an array" };
+      }
+      
+      // Validate each episode and filter out invalid ones
+      const validEpisodes = chroniclesData.episodes.filter((episode: any) => {
+        const isValid = validateEpisode(episode);
+        if (!isValid) {
+          console.warn("Invalid episode found and filtered out:", episode.id || "unknown");
+        }
+        return isValid;
+      });
+      
+      return { episodes: validEpisodes, total: validEpisodes.length };
     } catch (error) {
       console.error("Failed to read chronicles data:", error);
-      return { episodes: [], total: 0 };
+      reply.status(500);
+      return { error: "Failed to load chronicles data", episodes: [], total: 0 };
     }
   });
 
