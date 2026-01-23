@@ -24,7 +24,7 @@ namespace BlackRoad.Worldbuilder.Player
         [Header("Fly Mode")]
         [SerializeField] private bool startInFlyMode = false;
         [SerializeField] private float flySpeedMultiplier = 2f;
-        [SerializeField] private KeyCode flyToggleKey = KeyCode.F;
+        [SerializeField] private KeyCode flyToggleKey = KeyCode.G;
 
         public bool IsFlying { get; private set; }
 
