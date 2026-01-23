@@ -202,6 +202,14 @@ categories:
     - ideas
 environments:
   dev:
-    domain_root: dev.blackroad.io
+    domain_root: dev.blackroad.systems
+    public_domain: dev.blackroad.io
+  stg:
+    domain_root: stg.blackroad.systems
+    public_domain: stg.blackroad.io
+  sandbox:
+    domain_root: sandbox.blackroad.systems
+    public_domain: sandbox.blackroad.io
   prod:
-    domain_root: blackroad.io
+    domain_root: blackroad.systems
+    public_domain: blackroad.io

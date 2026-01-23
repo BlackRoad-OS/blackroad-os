@@ -58,6 +58,7 @@
       "ideas"
     ]
   },
+  "packs": [],
   "environments": {
     "dev": {
       "domain_root": "dev.blackroad.systems",
