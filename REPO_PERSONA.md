@@ -57,18 +57,44 @@
 
 ## 🧭 REPO INDEX
 
+### Core Services
 | Repo | Role | Description |
 |------|------|-------------|
-| `blackroad-os` | 🧠🧭 Org Brain & Map | Top-level nerve center, architecture docs |
+| `blackroad-os` | 🧠🧭 Org Brain & Map | Top-level nerve center, architecture docs, orchestration |
 | `blackroad-os-core` | 🧠 Core Logic | Application brain, core business logic |
-| `blackroad-os-web` | 🎨 UI Shell | Web frontend, React components |
-| `blackroad-os-api` | 🔌 API Layer | REST/GraphQL endpoints |
-| `blackroad-os-api-gateway` | 🚪 Gateway | API routing, authentication |
-| `blackroad-os-operator` | ⚙️ Operator | Jobs, automation, cron tasks |
-| `blackroad-os-prism-console` | 🕹️ Console | Control plane, dashboards |
-| `blackroad-os-infra` | ☁️ Infra | Cloudflare, Railway, DNS configs |
-| `blackroad-os-research` | 🧪 Research | Experiments, R&D |
-| `blackroad-os-docs` | 📚 Documentation | Extended documentation |
+| `blackroad-os-web` | 🎨 UI Shell | Web frontend, React components, marketing site |
+| `blackroad-os-home` | 🏠 Home Dashboard | User home dashboard and workspace |
+| `blackroad-os-api` | 🔌 API Services | REST/GraphQL endpoints, microservices |
+| `blackroad-os-api-gateway` | 🚪 Gateway | API routing, authentication, rate limiting |
+| `blackroad-os-operator` | ⚙️ Operator | Jobs, automation, cron tasks, orchestration |
+| `blackroad-os-prism-console` | 🕹️ Console | Admin control plane, dashboards, monitoring |
+
+### Infrastructure
+| Repo | Role | Description |
+|------|------|-------------|
+| `blackroad-os-infra` | ☁️ Infrastructure | Cloudflare, Railway, DNS configs, IaC |
+| `blackroad-os-agents` | 🤖 Agents | AI agents, automation bots, workflows |
+| `blackroad-os-beacon` | 🚨 Status | Health checks, status page, uptime monitoring |
+
+### Product Packs
+| Repo | Role | Description |
+|------|------|-------------|
+| `blackroad-os-pack-education` | 💼📚 Education | Educational tools, courses, learning management |
+| `blackroad-os-pack-infra-devops` | 💼⚙️ DevOps | DevOps tools, CI/CD, infrastructure management |
+| `blackroad-os-pack-creator-studio` | 💼🎨 Creator Studio | Content creation, media editing, publishing |
+| `blackroad-os-pack-finance` | 💼💰 Finance | Financial tools, accounting, invoicing, payments |
+| `blackroad-os-pack-legal` | 💼⚖️ Legal | Legal document management, compliance, contracts |
+| `blackroad-os-pack-research-lab` | 💼🧪 Research Lab | R&D experiments, prototypes, innovation projects |
+
+### Support
+| Repo | Role | Description |
+|------|------|-------------|
+| `blackroad-os-docs` | 📚 Documentation | Extended documentation, guides, API reference |
+| `blackroad-os-research` | 🧪 Research | Experiments, R&D papers, innovation docs |
+| `blackroad-os-brand` | 🎨 Brand | Logo, colors, design system, brand guidelines |
+| `blackroad-os-archive` | 🧾 Archive | Historical data, logs, deprecated features |
+| `blackroad-os-demo` | 🎮 Demo | Demos, sandboxes, showcase environments |
+| `blackroad-os-ideas` | 💡 Ideas | Feature requests, brainstorming, roadmap |
 
 ---
 
@@ -78,6 +104,7 @@
 |-------|---------|
 | 🧠 | Core logic / architecture |
 | 🧭 | Source of truth / map |
+| 🏠 | Home / dashboard |
 | 💼 | Vertical pack / product line |
 | 📚 | Docs / knowledge |
 | 🧪 | Research / experiments |
@@ -89,6 +116,11 @@
 | 🧾 | Archive / logs |
 | 🎨 | Brand / design |
 | 🤖 | Agents / bots |
+| 🚨 | Status / monitoring |
+| 💡 | Ideas / brainstorming |
+| 🎮 | Demo / sandbox |
+| 💰 | Finance / payments |
+| ⚖️ | Legal / compliance |
 
 ---
 

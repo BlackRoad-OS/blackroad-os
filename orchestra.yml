@@ -1,27 +1,205 @@
-version: 0.1.0
+version: 0.2.0
 repos:
+  # Core Services
+  meta: BlackRoad-OS/blackroad-os
   core: BlackRoad-OS/blackroad-os-core
+  web: BlackRoad-OS/blackroad-os-web
+  home: BlackRoad-OS/blackroad-os-home
   api: BlackRoad-OS/blackroad-os-api
   gateway: BlackRoad-OS/blackroad-os-api-gateway
   operator: BlackRoad-OS/blackroad-os-operator
   prism: BlackRoad-OS/blackroad-os-prism-console
-  web: BlackRoad-OS/blackroad-os-web
+  
+  # Infrastructure
+  infra: BlackRoad-OS/blackroad-os-infra
+  agents: BlackRoad-OS/blackroad-os-agents
+  beacon: BlackRoad-OS/blackroad-os-beacon
+  
+  # Product Packs
+  pack-education: BlackRoad-OS/blackroad-os-pack-education
+  pack-devops: BlackRoad-OS/blackroad-os-pack-infra-devops
+  pack-creator: BlackRoad-OS/blackroad-os-pack-creator-studio
+  pack-finance: BlackRoad-OS/blackroad-os-pack-finance
+  pack-legal: BlackRoad-OS/blackroad-os-pack-legal
+  pack-research: BlackRoad-OS/blackroad-os-pack-research-lab
+  
+  # Support
+  docs: BlackRoad-OS/blackroad-os-docs
+  research: BlackRoad-OS/blackroad-os-research
+  brand: BlackRoad-OS/blackroad-os-brand
+  archive: BlackRoad-OS/blackroad-os-archive
+  demo: BlackRoad-OS/blackroad-os-demo
+  ideas: BlackRoad-OS/blackroad-os-ideas
+
 services:
-  core-web:
+  # Core Services
+  os-meta:
+    repo: meta
+    env: prod
+    url: https://os.blackroad.systems
+    health: /health
+    
+  core-app:
     repo: core
+    env: prod
+    url: https://core.blackroad.systems
+    health: /api/health
+    depends:
+      - api-gateway
+      - operator
+      
+  web-app:
+    repo: web
     env: prod
     url: https://web.blackroad.io
     health: /api/health
     depends:
-      - gateway
+      - api-gateway
+      - home-app
+      
+  home-app:
+    repo: home
+    env: prod
+    url: https://app.blackroad.io
+    health: /api/health
+    depends:
+      - api-gateway
+      - core-app
+      
+  api-gateway:
+    repo: gateway
+    env: prod
+    url: https://api.blackroad.io
+    health: /health
+    depends:
+      - api-services
       - operator
-packs:
-  - education
-  - infra-devops
-  - creator-studio
-  - finance
-  - legal
-  - research-lab
+      
+  api-services:
+    repo: api
+    env: prod
+    url: https://services.blackroad.systems
+    health: /health
+    depends:
+      - core-app
+      
+  operator-service:
+    repo: operator
+    env: prod
+    url: https://operator.blackroad.systems
+    health: /health
+    depends:
+      - core-app
+      
+  prism-console:
+    repo: prism
+    env: prod
+    url: https://console.blackroad.io
+    health: /health
+    depends:
+      - api-gateway
+      - operator
+      
+  # Infrastructure Services
+  agents-service:
+    repo: agents
+    env: prod
+    url: https://agents.blackroad.systems
+    health: /health
+    depends:
+      - api-gateway
+      
+  beacon-service:
+    repo: beacon
+    env: prod
+    url: https://status.blackroad.io
+    health: /health
+    depends:
+      - api-gateway
+      
+  # Product Packs
+  education-pack:
+    repo: pack-education
+    env: prod
+    url: https://education.blackroad.systems
+    health: /health
+    depends:
+      - api-gateway
+      - core-app
+      
+  devops-pack:
+    repo: pack-devops
+    env: prod
+    url: https://devops.blackroad.systems
+    health: /health
+    depends:
+      - api-gateway
+      - core-app
+      
+  creator-pack:
+    repo: pack-creator
+    env: prod
+    url: https://studio.blackroad.systems
+    health: /health
+    depends:
+      - api-gateway
+      - core-app
+      
+  finance-pack:
+    repo: pack-finance
+    env: prod
+    url: https://finance.blackroad.systems
+    health: /health
+    depends:
+      - api-gateway
+      - core-app
+      
+  legal-pack:
+    repo: pack-legal
+    env: prod
+    url: https://legal.blackroad.systems
+    health: /health
+    depends:
+      - api-gateway
+      - core-app
+      
+  research-pack:
+    repo: pack-research
+    env: prod
+    url: https://lab.blackroad.systems
+    health: /health
+    depends:
+      - api-gateway
+      - core-app
+
+categories:
+  core:
+    - meta
+    - core
+    - web
+    - home
+    - api
+    - gateway
+    - operator
+    - prism
+  infrastructure:
+    - infra
+    - agents
+    - beacon
+  packs:
+    - pack-education
+    - pack-devops
+    - pack-creator
+    - pack-finance
+    - pack-legal
+    - pack-research
+  support:
+    - docs
+    - research
+    - brand
+    - archive
+    - demo
+    - ideas
 environments:
   dev:
     domain_root: dev.blackroad.io
