@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memory Journal | BlackRoad OS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* BlackRoad Grayscale */
+      --bg-void: #0a0a0a;
+      --bg-surface: #111111;
+      --bg-elevated: #1a1a1a;
+      --bg-hover: #222222;
+      --border-subtle: #2a2a2a;
+      --border-default: #333333;
+      --border-strong: #444444;
+      --text-muted: #666666;
+      --text-secondary: #999999;
+      --text-primary: #cccccc;
+      --text-bright: #e5e5e5;
+      --text-white: #ffffff;
+      
+      /* Typography */
+      --font-display: 'Space Grotesk', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-void);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+    
+    /* Scanline overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.03) 2px,
+        rgba(0,0,0,0.03) 4px
+      );
+      pointer-events: none;
+      z-index: 1000;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    
+    /* Header */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .page-title {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--text-white);
+    }
+    
+    .agent-selector {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .agent-selector:hover {
+      border-color: var(--border-default);
+      color: var(--text-bright);
+    }
+    
+    .agent-selector::after {
+      content: '▼';
+      font-size: 8px;
+      color: var(--text-muted);
+    }
+    
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      width: 280px;
+    }
+    
+    .search-box:focus-within {
+      border-color: var(--border-default);
+    }
+    
+    .search-icon {
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+    
+    .search-input {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-primary);
+    }
+    
+    .search-input::placeholder {
+      color: var(--text-muted);
+    }
+    
+    /* Main Layout */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 20px;
+    }
+    
+    /* Left Panel - Hash Chain */
+    .chain-panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      max-height: calc(100vh - 140px);
+    }
+    
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+    }
+    
+    .panel-title {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-white);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .panel-title::before {
+      content: '';
+      width: 3px;
+      height: 12px;
+      background: var(--text-muted);
+      border-radius: 2px;
+    }
+    
+    .panel-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 2px 6px;
+      background: var(--bg-elevated);
+      border-radius: 3px;
+      color: var(--text-muted);
+    }
+    
+    /* Hash Chain List */
+    .chain-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+    }
+    
+    .chain-item {
+      position: relative;
+      padding: 12px;
+      padding-left: 28px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .chain-item:hover {
+      border-color: var(--border-default);
+      background: var(--bg-hover);
+    }
+    
+    .chain-item.selected {
+      border-color: var(--border-strong);
+      background: var(--bg-hover);
+    }
+    
+    /* Chain connector line */
+    .chain-item::before {
+      content: '';
+      position: absolute;
+      left: 10px;
+      top: 0;
+      bottom: -8px;
+      width: 1px;
+      background: var(--border-subtle);
+    }
+    
+    .chain-item:last-child::before {
+      bottom: 50%;
+    }
+    
+    /* Chain node dot */
+    .chain-item::after {
+      content: '';
+      position: absolute;
+      left: 6px;
+      top: 16px;
+      width: 9px;
+      height: 9px;
+      background: var(--bg-void);
+      border: 2px solid var(--text-muted);
+      border-radius: 50%;
+    }
+    
+    .chain-item.selected::after {
+      background: var(--text-secondary);
+      border-color: var(--text-bright);
+    }
+    
+    .commit-hash {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-bright);
+      margin-bottom: 4px;
+    }
+    
+    .commit-time {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    
+    .commit-summary {
+      font-family: var(--font-body);
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+    
+    .commit-stats {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+    
+    .commit-stat {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    /* Right Panel - Journal Entries */
+    .journal-panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      max-height: calc(100vh - 140px);
+    }
+    
+    .journal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+    }
+    
+    .journal-title {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-white);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .journal-title::before {
+      content: '';
+      width: 3px;
+      height: 12px;
+      background: var(--text-muted);
+      border-radius: 2px;
+    }
+    
+    .journal-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .meta-item {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    
+    .meta-item span {
+      color: var(--text-secondary);
+    }
+    
+    /* Commit Details Bar */
+    .commit-details {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 12px 20px;
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+    }
+    
+    .detail-group {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    
+    .detail-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .detail-value {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-bright);
+    }
+    
+    .detail-value.hash {
+      color: var(--text-secondary);
+    }
+    
+    .coherence-display {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .coherence-bar {
+      width: 60px;
+      height: 4px;
+      background: var(--bg-void);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    
+    .coherence-fill {
+      height: 100%;
+      background: var(--text-secondary);
+      border-radius: 2px;
+    }
+    
+    /* Journal Entries */
+    .journal-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px;
+    }
+    
+    .entry-group {
+      margin-bottom: 24px;
+    }
+    
+    .entry-group:last-child {
+      margin-bottom: 0;
+    }
+    
+    .entry-group-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    
+    .entry-group-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .entry-group-count {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-left: auto;
+    }
+    
+    .entry-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .journal-entry {
+      padding: 14px 16px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    
+    .journal-entry:hover {
+      border-color: var(--border-default);
+    }
+    
+    .entry-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    
+    .entry-type {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 2px 6px;
+      background: var(--bg-void);
+      border-radius: 3px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+    }
+    
+    .entry-timestamp {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+    
+    .entry-content {
+      font-family: var(--font-body);
+      font-size: 13px;
+      color: var(--text-primary);
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+    
+    .entry-content code {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 1px 5px;
+      background: var(--bg-void);
+      border-radius: 3px;
+      color: var(--text-secondary);
+    }
+    
+    .entry-metadata {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-subtle);
+    }
+    
+    .entry-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+    
+    .entry-meta-item span {
+      color: var(--text-secondary);
+    }
+    
+    /* Truth State Indicator */
+    .truth-state {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      background: var(--bg-void);
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+    }
+    
+    .truth-state.positive {
+      color: var(--text-bright);
+    }
+    
+    .truth-state.negative {
+      color: var(--text-muted);
+    }
+    
+    .truth-state.uncertain {
+      color: var(--text-secondary);
+    }
+    
+    /* Pagination */
+    .journal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      border-top: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+    }
+    
+    .pagination-info {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    
+    .pagination-controls {
+      display: flex;
+      gap: 6px;
+    }
+    
+    .page-btn {
+      padding: 6px 10px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .page-btn:hover {
+      border-color: var(--border-default);
+      color: var(--text-secondary);
+    }
+    
+    .page-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .chain-panel {
+        max-height: 300px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="page-header">
+      <div class="header-left">
+        <h1 class="page-title">Memory Journal</h1>
+        <div class="agent-selector">
+          lucidia-prime
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="search-box">
+          <span class="search-icon">⌕</span>
+          <input type="text" class="search-input" placeholder="Search entries...">
+        </div>
+      </div>
+    </header>
+    
+    <!-- Main Grid -->
+    <div class="main-grid">
+      <!-- Hash Chain Panel -->
+      <aside class="chain-panel">
+        <header class="panel-header">
+          <h2 class="panel-title">Hash Chain</h2>
+          <span class="panel-badge">PS-SHA∞</span>
+        </header>
+        <div class="chain-list">
+          <div class="chain-item selected">
+            <div class="commit-hash">a3f8c2e1b7d4</div>
+            <div class="commit-time">3 minutes ago</div>
+            <div class="commit-summary">Memory consolidation + contradiction resolution</div>
+            <div class="commit-stats">
+              <span class="commit-stat">+14 entries</span>
+              <span class="commit-stat">Δ0.02 coherence</span>
+            </div>
+          </div>
+          
+          <div class="chain-item">
+            <div class="commit-hash">f7e2a9c3d1b8</div>
+            <div class="commit-time">18 minutes ago</div>
+            <div class="commit-summary">Context branch merge: temporal-scope</div>
+            <div class="commit-stats">
+              <span class="commit-stat">+8 entries</span>
+              <span class="commit-stat">Δ0.01 coherence</span>
+            </div>
+          </div>
+          
+          <div class="chain-item">
+            <div class="commit-hash">b4d1e8f2a6c9</div>
+            <div class="commit-time">41 minutes ago</div>
+            <div class="commit-summary">Research integration: quantum coherence</div>
+            <div class="commit-stats">
+              <span class="commit-stat">+23 entries</span>
+              <span class="commit-stat">Δ0.04 coherence</span>
+            </div>
+          </div>
+          
+          <div class="chain-item">
+            <div class="commit-hash">c9a3f7b2e1d4</div>
+            <div class="commit-time">1 hour ago</div>
+            <div class="commit-summary">Daily scheduled consolidation</div>
+            <div class="commit-stats">
+              <span class="commit-stat">+47 entries</span>
+              <span class="commit-stat">Δ0.03 coherence</span>
+            </div>
+          </div>
+          
+          <div class="chain-item">
+            <div class="commit-hash">e2b8d4a1c7f3</div>
+            <div class="commit-time">2 hours ago</div>
+            <div class="commit-summary">Task completion batch</div>
+            <div class="commit-stats">
+              <span class="commit-stat">+31 entries</span>
+              <span class="commit-stat">Δ0.01 coherence</span>
+            </div>
+          </div>
+          
+          <div class="chain-item">
+            <div class="commit-hash">d1f4c8a2b9e7</div>
+            <div class="commit-time">3 hours ago</div>
+            <div class="commit-summary">Human-in-loop decision recorded</div>
+            <div class="commit-stats">
+              <span class="commit-stat">+5 entries</span>
+              <span class="commit-stat">Δ0.00 coherence</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+      
+      <!-- Journal Entries Panel -->
+      <section class="journal-panel">
+        <header class="journal-header">
+          <h2 class="journal-title">Journal Entries</h2>
+          <div class="journal-meta">
+            <span class="meta-item">Commit: <span>a3f8c2e1b7d4</span></span>
+            <span class="meta-item">Entries: <span>14</span></span>
+          </div>
+        </header>
+        
+        <!-- Commit Details -->
+        <div class="commit-details">
+          <div class="detail-group">
+            <span class="detail-label">Parent Hash</span>
+            <span class="detail-value hash">f7e2a9c3d1b8</span>
+          </div>
+          <div class="detail-group">
+            <span class="detail-label">Timestamp</span>
+            <span class="detail-value">2025-01-24 14:32:17 CST</span>
+          </div>
+          <div class="detail-group">
+            <span class="detail-label">Coherence</span>
+            <div class="coherence-display">
+              <span class="detail-value">0.87</span>
+              <div class="coherence-bar">
+                <div class="coherence-fill" style="width: 87%"></div>
+              </div>
+            </div>
+          </div>
+          <div class="detail-group">
+            <span class="detail-label">Logic State</span>
+            <span class="detail-value">trinary (1/0/-1)</span>
+          </div>
+        </div>
+        
+        <!-- Journal Body -->
+        <div class="journal-body">
+          <!-- Observations -->
+          <div class="entry-group">
+            <div class="entry-group-header">
+              <span class="entry-group-label">Observations</span>
+              <span class="entry-group-count">6 entries</span>
+            </div>
+            <div class="entry-list">
+              <div class="journal-entry">
+                <div class="entry-header">
+                  <span class="entry-type">observation</span>
+                  <span class="entry-timestamp">14:32:14</span>
+                </div>
+                <div class="entry-content">
+                  Detected pattern similarity between <code>Z-framework</code> equilibrium conditions and Lyapunov stability criteria in dynamical systems theory.
+                </div>
+                <div class="entry-metadata">
+                  <span class="entry-meta-item">source: <span>reasoning.recursive</span></span>
+                  <span class="entry-meta-item">confidence: <span>0.84</span></span>
+                  <span class="truth-state positive">state: 1</span>
+                </div>
+              </div>
+              
+              <div class="journal-entry">
+                <div class="entry-header">
+                  <span class="entry-type">observation</span>
+                  <span class="entry-timestamp">14:31:58</span>
+                </div>
+                <div class="entry-content">
+                  Research task completed: found 7 papers connecting partition functions to information geometry. Fisher metric appears in 4 of them.
+                </div>
+                <div class="entry-metadata">
+                  <span class="entry-meta-item">source: <span>tool.web_search</span></span>
+                  <span class="entry-meta-item">confidence: <span>0.92</span></span>
+                  <span class="truth-state positive">state: 1</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Inferences -->
+          <div class="entry-group">
+            <div class="entry-group-header">
+              <span class="entry-group-label">Inferences</span>
+              <span class="entry-group-count">4 entries</span>
+            </div>
+            <div class="entry-list">
+              <div class="journal-entry">
+                <div class="entry-header">
+                  <span class="entry-type">inference</span>
+                  <span class="entry-timestamp">14:32:11</span>
+                </div>
+                <div class="entry-content">
+                  The creative energy formula <code>K(t) = C(t) · e^(λ|δ_t|)</code> may have a natural interpretation as exponential map on the statistical manifold defined by coherence.
+                </div>
+                <div class="entry-metadata">
+                  <span class="entry-meta-item">derived_from: <span>obs-447, obs-448</span></span>
+                  <span class="entry-meta-item">confidence: <span>0.71</span></span>
+                  <span class="truth-state uncertain">state: -1</span>
+                </div>
+              </div>
+              
+              <div class="journal-entry">
+                <div class="entry-header">
+                  <span class="entry-type">inference</span>
+                  <span class="entry-timestamp">14:31:44</span>
+                </div>
+                <div class="entry-content">
+                  If coherence formula maps to Fisher information, then natural gradient descent would optimize belief updates more efficiently than current approach.
+                </div>
+                <div class="entry-metadata">
+                  <span class="entry-meta-item">derived_from: <span>obs-449</span></span>
+                  <span class="entry-meta-item">confidence: <span>0.68</span></span>
+                  <span class="truth-state uncertain">state: -1</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Contradictions Resolved -->
+          <div class="entry-group">
+            <div class="entry-group-header">
+              <span class="entry-group-label">Contradictions Resolved</span>
+              <span class="entry-group-count">2 entries</span>
+            </div>
+            <div class="entry-list">
+              <div class="journal-entry">
+                <div class="entry-header">
+                  <span class="entry-type">resolution</span>
+                  <span class="entry-timestamp">14:32:08</span>
+                </div>
+                <div class="entry-content">
+                  Resolved via <code>mirror-pair</code>: temporal scope mismatch between short-term task memory and long-term pattern storage. Bridge rule applied: context determines which scope is authoritative.
+                </div>
+                <div class="entry-metadata">
+                  <span class="entry-meta-item">method: <span>paraconsistent</span></span>
+                  <span class="entry-meta-item">affected: <span>3 entries</span></span>
+                  <span class="truth-state positive">state: 1</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Actions -->
+          <div class="entry-group">
+            <div class="entry-group-header">
+              <span class="entry-group-label">Actions</span>
+              <span class="entry-group-count">2 entries</span>
+            </div>
+            <div class="entry-list">
+              <div class="journal-entry">
+                <div class="entry-header">
+                  <span class="entry-type">action</span>
+                  <span class="entry-timestamp">14:32:02</span>
+                </div>
+                <div class="entry-content">
+                  Delegated follow-up research to <code>researcher-02</code>: explore connections between natural gradient and belief propagation algorithms.
+                </div>
+                <div class="entry-metadata">
+                  <span class="entry-meta-item">task_id: <span>del-ng-bp-001</span></span>
+                  <span class="entry-meta-item">priority: <span>normal</span></span>
+                  <span class="truth-state positive">state: 1</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="journal-footer">
+          <span class="pagination-info">Showing 14 of 14 entries in commit</span>
+          <div class="pagination-controls">
+            <button class="page-btn" disabled>← Prev Commit</button>
+            <button class="page-btn">Next Commit →</button>
+          </div>
+        </footer>
+      </section>
+    </div>
+  </div>
+</body>
+</html>
