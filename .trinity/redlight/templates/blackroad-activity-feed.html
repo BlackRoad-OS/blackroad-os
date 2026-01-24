@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BlackRoad Activity Feed</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --gray-950: #0a0a0a;
+      --gray-900: #111111;
+      --gray-850: #1a1a1a;
+      --gray-800: #222222;
+      --gray-700: #333333;
+      --gray-600: #444444;
+      --gray-500: #666666;
+      --gray-400: #888888;
+      --gray-300: #aaaaaa;
+      --gray-200: #cccccc;
+      --gray-100: #e5e5e5;
+      --gray-50: #f5f5f5;
+      --white: #ffffff;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--gray-950);
+      color: var(--gray-100);
+      min-height: 100vh;
+      display: flex;
+      gap: 32px;
+      padding: 32px;
+    }
+
+    /* ========================================
+       LEFT SIDE: Toast Notifications
+       ======================================== */
+    .toast-container {
+      width: 380px;
+      flex-shrink: 0;
+    }
+
+    .toast-header {
+      margin-bottom: 20px;
+    }
+
+    .toast-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gray-500);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+
+    .toast-subtitle {
+      font-size: 13px;
+      color: var(--gray-600);
+    }
+
+    .toast-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Toast Base */
+    .toast {
+      background: var(--gray-900);
+      border: 1px solid var(--gray-800);
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      gap: 12px;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+
+    .toast:hover {
+      border-color: var(--gray-700);
+    }
+
+    .toast-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .toast-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .toast-message {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--gray-100);
+      line-height: 1.4;
+      margin-bottom: 4px;
+    }
+
+    .toast-detail {
+      font-size: 13px;
+      color: var(--gray-500);
+      line-height: 1.4;
+    }
+
+    .toast-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .toast-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--gray-600);
+    }
+
+    .toast-action {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--gray-400);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      transition: color 0.15s ease;
+    }
+
+    .toast-action:hover {
+      color: var(--gray-200);
+    }
+
+    .toast-dismiss {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--gray-600);
+      border-radius: 4px;
+      transition: all 0.15s ease;
+    }
+
+    .toast-dismiss:hover {
+      background: var(--gray-800);
+      color: var(--gray-400);
+    }
+
+    .toast-dismiss svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* Toast Variants */
+    .toast-success .toast-icon {
+      color: var(--gray-300);
+    }
+
+    .toast-error {
+      border-color: var(--gray-700);
+      background: var(--gray-900);
+    }
+
+    .toast-error .toast-icon {
+      color: var(--gray-300);
+    }
+
+    .toast-warning .toast-icon {
+      color: var(--gray-400);
+    }
+
+    .toast-info .toast-icon {
+      color: var(--gray-500);
+    }
+
+    /* Toast with Progress */
+    .toast-progress {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--gray-800);
+      border-radius: 0 0 10px 10px;
+      overflow: hidden;
+    }
+
+    .toast-progress-bar {
+      height: 100%;
+      background: var(--gray-500);
+      width: 65%;
+      transition: width 0.3s ease;
+    }
+
+    /* Toast with Actions */
+    .toast-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .toast-btn {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .toast-btn-primary {
+      color: var(--gray-900);
+      background: var(--gray-200);
+      border: none;
+    }
+
+    .toast-btn-primary:hover {
+      background: var(--white);
+    }
+
+    .toast-btn-secondary {
+      color: var(--gray-300);
+      background: transparent;
+      border: 1px solid var(--gray-700);
+    }
+
+    .toast-btn-secondary:hover {
+      background: var(--gray-800);
+      border-color: var(--gray-600);
+    }
+
+    /* ========================================
+       RIGHT SIDE: Activity Feed
+       ======================================== */
+    .feed-container {
+      flex: 1;
+      max-width: 560px;
+    }
+
+    .feed-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .feed-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--gray-100);
+      letter-spacing: -0.01em;
+    }
+
+    .feed-filters {
+      display: flex;
+      gap: 4px;
+      background: var(--gray-900);
+      border: 1px solid var(--gray-800);
+      border-radius: 6px;
+      padding: 3px;
+    }
+
+    .feed-filter {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--gray-500);
+      background: transparent;
+      border: none;
+      border-radius: 4px;
+      padding: 5px 10px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .feed-filter:hover {
+      color: var(--gray-300);
+    }
+
+    .feed-filter.active {
+      color: var(--gray-100);
+      background: var(--gray-700);
+    }
+
+    /* Feed List */
+    .feed-list {
+      background: var(--gray-900);
+      border: 1px solid var(--gray-800);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    /* Date Separator */
+    .feed-date {
+      padding: 12px 16px;
+      background: var(--gray-850);
+      border-bottom: 1px solid var(--gray-800);
+    }
+
+    .feed-date-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--gray-500);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    /* Feed Item */
+    .feed-item {
+      display: flex;
+      gap: 14px;
+      padding: 16px;
+      border-bottom: 1px solid var(--gray-850);
+      transition: background 0.15s ease;
+    }
+
+    .feed-item:last-child {
+      border-bottom: none;
+    }
+
+    .feed-item:hover {
+      background: var(--gray-850);
+    }
+
+    .feed-item-icon {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--gray-850);
+      border: 1px solid var(--gray-700);
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+
+    .feed-item:hover .feed-item-icon {
+      background: var(--gray-800);
+    }
+
+    .feed-item-icon svg {
+      width: 16px;
+      height: 16px;
+      color: var(--gray-400);
+    }
+
+    .feed-item-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .feed-item-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 4px;
+    }
+
+    .feed-item-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--gray-100);
+      line-height: 1.4;
+    }
+
+    .feed-item-title strong {
+      font-weight: 600;
+    }
+
+    .feed-item-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--gray-600);
+      flex-shrink: 0;
+    }
+
+    .feed-item-description {
+      font-size: 13px;
+      color: var(--gray-500);
+      line-height: 1.5;
+    }
+
+    /* Feed Item Badge */
+    .feed-item-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--gray-400);
+      background: var(--gray-800);
+      border-radius: 4px;
+      padding: 3px 7px;
+      margin-top: 8px;
+    }
+
+    .feed-item-badge svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    /* Feed Item Code Block */
+    .feed-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--gray-400);
+      background: var(--gray-850);
+      border: 1px solid var(--gray-800);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-top: 10px;
+      overflow-x: auto;
+    }
+
+    .feed-item:hover .feed-code {
+      background: var(--gray-800);
+      border-color: var(--gray-700);
+    }
+
+    /* Feed Item with Avatar */
+    .feed-avatar {
+      width: 32px;
+      height: 32px;
+      background: var(--gray-800);
+      border: 1px solid var(--gray-700);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--gray-400);
+      flex-shrink: 0;
+    }
+
+    /* Feed Item Expandable */
+    .feed-expand {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--gray-500);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      margin-top: 10px;
+      transition: color 0.15s ease;
+    }
+
+    .feed-expand:hover {
+      color: var(--gray-300);
+    }
+
+    .feed-expand svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* Unread Indicator */
+    .feed-item.unread {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .feed-item.unread::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: var(--gray-500);
+    }
+
+    .feed-item {
+      position: relative;
+    }
+
+    /* Load More */
+    .feed-load-more {
+      padding: 16px;
+      text-align: center;
+      border-top: 1px solid var(--gray-850);
+    }
+
+    .load-more-btn {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--gray-400);
+      background: var(--gray-850);
+      border: 1px solid var(--gray-700);
+      border-radius: 6px;
+      padding: 8px 20px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .load-more-btn:hover {
+      background: var(--gray-800);
+      border-color: var(--gray-600);
+      color: var(--gray-200);
+    }
+
+    /* ========================================
+       Alert Banner (top)
+       ======================================== */
+    .alert-banner {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: var(--gray-850);
+      border-bottom: 1px solid var(--gray-700);
+      padding: 12px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      z-index: 100;
+    }
+
+    .alert-banner-icon {
+      width: 18px;
+      height: 18px;
+      color: var(--gray-400);
+    }
+
+    .alert-banner-text {
+      font-size: 14px;
+      color: var(--gray-200);
+    }
+
+    .alert-banner-text strong {
+      font-weight: 600;
+    }
+
+    .alert-banner-action {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--gray-900);
+      background: var(--gray-200);
+      border: none;
+      border-radius: 5px;
+      padding: 5px 12px;
+      cursor: pointer;
+      margin-left: 8px;
+      transition: background 0.15s ease;
+    }
+
+    .alert-banner-action:hover {
+      background: var(--white);
+    }
+
+    .alert-banner-dismiss {
+      position: absolute;
+      right: 16px;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--gray-500);
+      border-radius: 4px;
+      transition: all 0.15s ease;
+    }
+
+    .alert-banner-dismiss:hover {
+      background: var(--gray-700);
+      color: var(--gray-300);
+    }
+
+    .alert-banner-dismiss svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Offset body for banner */
+    body {
+      padding-top: 80px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Alert Banner -->
+  <div class="alert-banner">
+    <svg class="alert-banner-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="M12 16v-4"></path>
+      <path d="M12 8h.01"></path>
+    </svg>
+    <span class="alert-banner-text"><strong>Cluster maintenance</strong> scheduled for Jan 25, 2:00 AM CST</span>
+    <button class="alert-banner-action">View details</button>
+    <button class="alert-banner-dismiss">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 6 6 18"></path>
+        <path d="m6 6 12 12"></path>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div class="toast-container">
+    <div class="toast-header">
+      <div class="toast-title">Notifications</div>
+      <div class="toast-subtitle">Live updates from your cluster</div>
+    </div>
+
+    <div class="toast-stack">
+      <!-- Success Toast -->
+      <div class="toast toast-success">
+        <svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <div class="toast-body">
+          <div class="toast-message">Agent sync completed</div>
+          <div class="toast-detail">247 agents synchronized across 4 nodes</div>
+          <div class="toast-meta">
+            <span class="toast-time">Just now</span>
+            <button class="toast-action">View report</button>
+          </div>
+        </div>
+        <button class="toast-dismiss">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Error Toast with Actions -->
+      <div class="toast toast-error">
+        <svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="m15 9-6 6"></path>
+          <path d="m9 9 6 6"></path>
+        </svg>
+        <div class="toast-body">
+          <div class="toast-message">Memory commit failed</div>
+          <div class="toast-detail">PS-SHA∞ hash verification failed for agent Ember. Journal entry quarantined.</div>
+          <div class="toast-actions">
+            <button class="toast-btn toast-btn-primary">Retry commit</button>
+            <button class="toast-btn toast-btn-secondary">View logs</button>
+          </div>
+        </div>
+        <button class="toast-dismiss">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Warning Toast -->
+      <div class="toast toast-warning">
+        <svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+          <path d="M12 9v4"></path>
+          <path d="M12 17h.01"></path>
+        </svg>
+        <div class="toast-body">
+          <div class="toast-message">High memory usage detected</div>
+          <div class="toast-detail">alice-pi400 at 87% memory utilization</div>
+          <div class="toast-meta">
+            <span class="toast-time">2 min ago</span>
+            <button class="toast-action">Investigate</button>
+          </div>
+        </div>
+        <button class="toast-dismiss">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Info Toast with Progress -->
+      <div class="toast toast-info">
+        <svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" x2="12" y1="15" y2="3"></line>
+        </svg>
+        <div class="toast-body">
+          <div class="toast-message">Downloading model weights</div>
+          <div class="toast-detail">phi-3-mini-4k-instruct • 2.1 GB of 3.2 GB</div>
+          <div class="toast-meta">
+            <span class="toast-time">~4 min remaining</span>
+          </div>
+        </div>
+        <div class="toast-progress">
+          <div class="toast-progress-bar"></div>
+        </div>
+      </div>
+
+      <!-- Simple Info Toast -->
+      <div class="toast toast-info">
+        <svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M12 16v-4"></path>
+          <path d="M12 8h.01"></path>
+        </svg>
+        <div class="toast-body">
+          <div class="toast-message">New agent registered</div>
+          <div class="toast-detail">Aria joined the cluster on jetson-orin</div>
+          <div class="toast-meta">
+            <span class="toast-time">5 min ago</span>
+          </div>
+        </div>
+        <button class="toast-dismiss">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Activity Feed -->
+  <div class="feed-container">
+    <div class="feed-header">
+      <h2 class="feed-title">Activity</h2>
+      <div class="feed-filters">
+        <button class="feed-filter active">All</button>
+        <button class="feed-filter">Agents</button>
+        <button class="feed-filter">System</button>
+        <button class="feed-filter">Errors</button>
+      </div>
+    </div>
+
+    <div class="feed-list">
+      <!-- Today -->
+      <div class="feed-date">
+        <span class="feed-date-text">Today</span>
+      </div>
+
+      <div class="feed-item unread">
+        <div class="feed-item-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <div class="feed-item-content">
+          <div class="feed-item-header">
+            <div class="feed-item-title"><strong>Lucidia</strong> completed memory consolidation</div>
+            <span class="feed-item-time">2 min ago</span>
+          </div>
+          <div class="feed-item-description">Merged 1,247 journal entries into long-term memory store. Truth state hash updated.</div>
+          <div class="feed-item-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            PS-SHA∞ verified
+          </div>
+        </div>
+      </div>
+
+      <div class="feed-item">
+        <div class="feed-avatar">Al</div>
+        <div class="feed-item-content">
+          <div class="feed-item-header">
+            <div class="feed-item-title"><strong>Alice</strong> processed 847 API requests</div>
+            <span class="feed-item-time">15 min ago</span>
+          </div>
+          <div class="feed-item-description">Gateway traffic nominal. Average latency: 23ms.</div>
+        </div>
+      </div>
+
+      <div class="feed-item">
+        <div class="feed-item-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+            <path d="M12 9v4"></path>
+            <path d="M12 17h.01"></path>
+          </svg>
+        </div>
+        <div class="feed-item-content">
+          <div class="feed-item-header">
+            <div class="feed-item-title">Contradiction detected in <strong>Maxwell</strong> context</div>
+            <span class="feed-item-time">34 min ago</span>
+          </div>
+          <div class="feed-item-description">Conflicting assertions quarantined pending resolution. Branch context created.</div>
+          <div class="feed-code">claim_a: "deployment_target = production"
+claim_b: "deployment_target = staging"
+resolution: PENDING_HUMAN_REVIEW</div>
+        </div>
+      </div>
+
+      <div class="feed-item">
+        <div class="feed-avatar">Oc</div>
+        <div class="feed-item-content">
+          <div class="feed-item-header">
+            <div class="feed-item-title"><strong>Octavia</strong> completed inference batch</div>
+            <span class="feed-item-time">1 hr ago</span>
+          </div>
+          <div class="feed-item-description">Processed 156 embeddings on Hailo accelerator. Queue depth: 0.</div>
+          <button class="feed-expand">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m6 9 6 6 6-6"/>
+            </svg>
+            Show performance metrics
+          </button>
+        </div>
+      </div>
+
+      <!-- Yesterday -->
+      <div class="feed-date">
+        <span class="feed-date-text">Yesterday</span>
+      </div>
+
+      <div class="feed-item">
+        <div class="feed-item-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div>
+        <div class="feed-item-content">
+          <div class="feed-item-header">
+            <div class="feed-item-title"><strong>Aria</strong> registered to cluster</div>
+            <span class="feed-item-time">Jan 23, 4:12 PM</span>
+          </div>
+          <div class="feed-item-description">New supervisor agent deployed on jetson-orin. Capability registry updated.</div>
+        </div>
+      </div>
+
+      <div class="feed-item">
+        <div class="feed-item-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+            <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+            <line x1="6" y1="6" x2="6.01" y2="6"></line>
+            <line x1="6" y1="18" x2="6.01" y2="18"></line>
+          </svg>
+        </div>
+        <div class="feed-item-content">
+          <div class="feed-item-header">
+            <div class="feed-item-title">Cluster health check passed</div>
+            <span class="feed-item-time">Jan 23, 12:00 PM</span>
+          </div>
+          <div class="feed-item-description">All 4 nodes responding. NATS messaging latency within threshold.</div>
+        </div>
+      </div>
+
+      <div class="feed-item">
+        <div class="feed-item-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="m15 9-6 6"></path>
+            <path d="m9 9 6 6"></path>
+          </svg>
+        </div>
+        <div class="feed-item-content">
+          <div class="feed-item-header">
+            <div class="feed-item-title"><strong>Ember</strong> went offline</div>
+            <span class="feed-item-time">Jan 23, 9:47 AM</span>
+          </div>
+          <div class="feed-item-description">Connection lost to pi-zero-01. Last heartbeat 3 hours ago.</div>
+          <div class="feed-item-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="4.93" x2="19.07" y1="4.93" y2="19.07"></line>
+            </svg>
+            Requires attention
+          </div>
+        </div>
+      </div>
+
+      <!-- Load More -->
+      <div class="feed-load-more">
+        <button class="load-more-btn">Load older activity</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
