@@ -1,805 +1,819 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Agent Profile | BlackRoad OS</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      /* BlackRoad Grayscale */
-      --bg-void: #0a0a0a;
-      --bg-surface: #111111;
-      --bg-elevated: #1a1a1a;
-      --bg-hover: #222222;
-      --border-subtle: #2a2a2a;
-      --border-default: #333333;
-      --text-muted: #666666;
-      --text-secondary: #999999;
-      --text-primary: #e5e5e5;
-      --text-bright: #ffffff;
-      
-      /* BlackRoad Gradient Stops */
-      --gradient-1: #ff8700; /* orange1 */
-      --gradient-2: #ff5f00; /* dark_orange */
-      --gradient-3: #ff0087; /* deep_pink2 */
-      --gradient-4: #af5fd7; /* medium_orchid */
-      --gradient-5: #ff00ff; /* magenta */
-      --gradient-6: #1e90ff; /* dodger_blue2 */
-      
-      /* Status Colors */
-      --status-active: #00ff87;
-      --status-idle: #5f87af;
-      --status-error: #ff5f5f;
-      --status-processing: var(--gradient-5);
-      
-      /* Typography */
-      --font-display: 'Space Grotesk', sans-serif;
-      --font-body: 'Inter', sans-serif;
-      --font-mono: 'JetBrains Mono', monospace;
-    }
-    
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    body {
-      font-family: var(--font-body);
-      background: var(--bg-void);
-      color: var(--text-primary);
-      min-height: 100vh;
-      line-height: 1.5;
-    }
-    
-    /* Scanline overlay for terminal feel */
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(0,0,0,0.03) 2px,
-        rgba(0,0,0,0.03) 4px
-      );
-      pointer-events: none;
-      z-index: 1000;
-    }
-    
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 32px 24px;
-    }
-    
-    /* Breadcrumb */
-    .breadcrumb {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-bottom: 24px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .breadcrumb span {
-      color: var(--text-secondary);
-    }
-    
-    .breadcrumb a {
-      color: var(--text-muted);
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-    
-    .breadcrumb a:hover {
-      color: var(--gradient-6);
-    }
-    
-    /* Main Grid */
-    .profile-grid {
-      display: grid;
-      grid-template-columns: 340px 1fr;
-      gap: 24px;
-    }
-    
-    /* Left Column - Identity */
-    .identity-panel {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    
-    .identity-header {
-      position: relative;
-      padding: 32px 24px;
-      background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-surface) 100%);
-      border-bottom: 1px solid var(--border-subtle);
-    }
-    
-    /* Avatar with gradient ring */
-    .avatar-container {
-      position: relative;
-      width: 120px;
-      height: 120px;
-      margin: 0 auto 20px;
-    }
-    
-    .avatar-ring {
-      position: absolute;
-      inset: -3px;
-      border-radius: 50%;
-      background: linear-gradient(
-        135deg,
-        var(--gradient-1),
-        var(--gradient-2),
-        var(--gradient-3),
-        var(--gradient-4),
-        var(--gradient-5),
-        var(--gradient-6)
-      );
-      animation: ring-rotate 8s linear infinite;
-    }
-    
-    @keyframes ring-rotate {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-    
-    .avatar {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      background: var(--bg-void);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: var(--font-display);
-      font-size: 40px;
-      font-weight: 600;
-      color: var(--text-bright);
-      z-index: 1;
-    }
-    
-    .agent-name {
-      font-family: var(--font-display);
-      font-size: 28px;
-      font-weight: 600;
-      color: var(--text-bright);
-      text-align: center;
-      margin-bottom: 4px;
-    }
-    
-    .agent-id {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--text-muted);
-      text-align: center;
-      letter-spacing: 0.5px;
-    }
-    
-    /* Status Badge */
-    .status-badge {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      background: rgba(0, 255, 135, 0.1);
-      border: 1px solid rgba(0, 255, 135, 0.3);
-      border-radius: 4px;
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--status-active);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    
-    .status-badge::before {
-      content: '';
-      width: 6px;
-      height: 6px;
-      background: var(--status-active);
-      border-radius: 50%;
-      animation: pulse 2s ease-in-out infinite;
-    }
-    
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
-    }
-    
-    /* Identity Details */
-    .identity-details {
-      padding: 20px 24px;
-    }
-    
-    .detail-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--border-subtle);
-    }
-    
-    .detail-row:last-child {
-      border-bottom: none;
-    }
-    
-    .detail-label {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    
-    .detail-value {
-      font-family: var(--font-body);
-      font-size: 14px;
-      color: var(--text-primary);
-    }
-    
-    .detail-value.mono {
-      font-family: var(--font-mono);
-      font-size: 12px;
-    }
-    
-    /* Quick Actions */
-    .quick-actions {
-      padding: 20px 24px;
-      border-top: 1px solid var(--border-subtle);
-      display: flex;
-      gap: 8px;
-    }
-    
-    .action-btn {
-      flex: 1;
-      padding: 10px 12px;
-      background: var(--bg-elevated);
-      border: 1px solid var(--border-default);
-      border-radius: 6px;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--text-secondary);
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-    
-    .action-btn:hover {
-      background: var(--bg-hover);
-      border-color: var(--gradient-6);
-      color: var(--text-bright);
-    }
-    
-    .action-btn.primary {
-      background: linear-gradient(135deg, var(--gradient-3), var(--gradient-5));
-      border-color: transparent;
-      color: var(--text-bright);
-    }
-    
-    .action-btn.primary:hover {
-      filter: brightness(1.1);
-    }
-    
-    /* Right Column */
-    .main-content {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-    
-    /* Section Cards */
-    .section-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    
-    .section-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border-subtle);
-    }
-    
-    .section-title {
-      font-family: var(--font-display);
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-bright);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .section-title::before {
-      content: '';
-      width: 3px;
-      height: 14px;
-      background: linear-gradient(180deg, var(--gradient-3), var(--gradient-5));
-      border-radius: 2px;
-    }
-    
-    .section-badge {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      padding: 3px 8px;
-      background: var(--bg-elevated);
-      border-radius: 4px;
-      color: var(--text-muted);
-    }
-    
-    .section-body {
-      padding: 20px;
-    }
-    
-    /* Memory State */
-    .memory-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-    }
-    
-    .memory-stat {
-      background: var(--bg-elevated);
-      border: 1px solid var(--border-subtle);
-      border-radius: 6px;
-      padding: 16px;
-    }
-    
-    .memory-stat-label {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 8px;
-    }
-    
-    .memory-stat-value {
-      font-family: var(--font-display);
-      font-size: 24px;
-      font-weight: 600;
-      color: var(--text-bright);
-    }
-    
-    .memory-stat-value.hash {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--gradient-6);
-      word-break: break-all;
-      line-height: 1.6;
-    }
-    
-    .memory-stat-sub {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--text-muted);
-      margin-top: 4px;
-    }
-    
-    /* Coherence Bar */
-    .coherence-bar-container {
-      margin-top: 12px;
-    }
-    
-    .coherence-bar-bg {
-      height: 4px;
-      background: var(--bg-void);
-      border-radius: 2px;
-      overflow: hidden;
-    }
-    
-    .coherence-bar-fill {
-      height: 100%;
-      width: 87%;
-      background: linear-gradient(90deg, var(--gradient-1), var(--gradient-3), var(--gradient-5));
-      border-radius: 2px;
-      transition: width 0.5s ease;
-    }
-    
-    /* Capabilities */
-    .capabilities-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    
-    .capability-tag {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      background: var(--bg-elevated);
-      border: 1px solid var(--border-subtle);
-      border-radius: 4px;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--text-secondary);
-      transition: all 0.2s;
-    }
-    
-    .capability-tag:hover {
-      border-color: var(--gradient-4);
-      color: var(--text-bright);
-    }
-    
-    .capability-tag::before {
-      content: '◆';
-      font-size: 8px;
-      color: var(--gradient-4);
-    }
-    
-    .capability-tag.subscribed::before {
-      content: '◈';
-      color: var(--gradient-6);
-    }
-    
-    /* Tasks */
-    .task-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    
-    .task-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 16px;
-      background: var(--bg-elevated);
-      border: 1px solid var(--border-subtle);
-      border-radius: 6px;
-      transition: all 0.2s;
-    }
-    
-    .task-item:hover {
-      border-color: var(--border-default);
-    }
-    
-    .task-status {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    
-    .task-status.running {
-      background: var(--status-active);
-      box-shadow: 0 0 8px var(--status-active);
-      animation: pulse 1.5s ease-in-out infinite;
-    }
-    
-    .task-status.queued {
-      background: var(--status-idle);
-    }
-    
-    .task-status.error {
-      background: var(--status-error);
-    }
-    
-    .task-info {
-      flex: 1;
-      min-width: 0;
-    }
-    
-    .task-name {
-      font-family: var(--font-body);
-      font-size: 13px;
-      color: var(--text-primary);
-      margin-bottom: 2px;
-    }
-    
-    .task-meta {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--text-muted);
-    }
-    
-    .task-progress {
-      width: 80px;
-      height: 3px;
-      background: var(--bg-void);
-      border-radius: 2px;
-      overflow: hidden;
-    }
-    
-    .task-progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--gradient-5), var(--gradient-6));
-      border-radius: 2px;
-    }
-    
-    /* Activity Log */
-    .activity-list {
-      display: flex;
-      flex-direction: column;
-    }
-    
-    .activity-item {
-      display: flex;
-      gap: 12px;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--border-subtle);
-    }
-    
-    .activity-item:last-child {
-      border-bottom: none;
-    }
-    
-    .activity-time {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--text-muted);
-      min-width: 60px;
-      padding-top: 2px;
-    }
-    
-    .activity-content {
-      flex: 1;
-    }
-    
-    .activity-action {
-      font-family: var(--font-body);
-      font-size: 13px;
-      color: var(--text-primary);
-      margin-bottom: 2px;
-    }
-    
-    .activity-action code {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      padding: 2px 6px;
-      background: var(--bg-elevated);
-      border-radius: 3px;
-      color: var(--gradient-6);
-    }
-    
-    .activity-detail {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-    
-    /* Responsive */
-    @media (max-width: 1024px) {
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agent Profile | BlackRoad OS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        /* BlackRoad Grayscale */
+        --bg-void: #0a0a0a;
+        --bg-surface: #111111;
+        --bg-elevated: #1a1a1a;
+        --bg-hover: #222222;
+        --border-subtle: #2a2a2a;
+        --border-default: #333333;
+        --text-muted: #666666;
+        --text-secondary: #999999;
+        --text-primary: #e5e5e5;
+        --text-bright: #ffffff;
+
+        /* BlackRoad Gradient Stops */
+        --gradient-1: #ff8700; /* orange1 */
+        --gradient-2: #ff5f00; /* dark_orange */
+        --gradient-3: #ff0087; /* deep_pink2 */
+        --gradient-4: #af5fd7; /* medium_orchid */
+        --gradient-5: #ff00ff; /* magenta */
+        --gradient-6: #1e90ff; /* dodger_blue2 */
+
+        /* Status Colors */
+        --status-active: #00ff87;
+        --status-idle: #5f87af;
+        --status-error: #ff5f5f;
+        --status-processing: var(--gradient-5);
+
+        /* Typography */
+        --font-display: 'Space Grotesk', sans-serif;
+        --font-body: 'Inter', sans-serif;
+        --font-mono: 'JetBrains Mono', monospace;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: var(--font-body);
+        background: var(--bg-void);
+        color: var(--text-primary);
+        min-height: 100vh;
+        line-height: 1.5;
+      }
+
+      /* Scanline overlay for terminal feel */
+      body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 2px,
+          rgba(0, 0, 0, 0.03) 2px,
+          rgba(0, 0, 0, 0.03) 4px
+        );
+        pointer-events: none;
+        z-index: 1000;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 32px 24px;
+      }
+
+      /* Breadcrumb */
+      .breadcrumb {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .breadcrumb span {
+        color: var(--text-secondary);
+      }
+
+      .breadcrumb a {
+        color: var(--text-muted);
+        text-decoration: none;
+        transition: color 0.2s;
+      }
+
+      .breadcrumb a:hover {
+        color: var(--gradient-6);
+      }
+
+      /* Main Grid */
       .profile-grid {
-        grid-template-columns: 1fr;
+        display: grid;
+        grid-template-columns: 340px 1fr;
+        gap: 24px;
       }
-      
+
+      /* Left Column - Identity */
+      .identity-panel {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      .identity-header {
+        position: relative;
+        padding: 32px 24px;
+        background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-surface) 100%);
+        border-bottom: 1px solid var(--border-subtle);
+      }
+
+      /* Avatar with gradient ring */
+      .avatar-container {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 20px;
+      }
+
+      .avatar-ring {
+        position: absolute;
+        inset: -3px;
+        border-radius: 50%;
+        background: linear-gradient(
+          135deg,
+          var(--gradient-1),
+          var(--gradient-2),
+          var(--gradient-3),
+          var(--gradient-4),
+          var(--gradient-5),
+          var(--gradient-6)
+        );
+        animation: ring-rotate 8s linear infinite;
+      }
+
+      @keyframes ring-rotate {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .avatar {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: var(--bg-void);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-display);
+        font-size: 40px;
+        font-weight: 600;
+        color: var(--text-bright);
+        z-index: 1;
+      }
+
+      .agent-name {
+        font-family: var(--font-display);
+        font-size: 28px;
+        font-weight: 600;
+        color: var(--text-bright);
+        text-align: center;
+        margin-bottom: 4px;
+      }
+
+      .agent-id {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--text-muted);
+        text-align: center;
+        letter-spacing: 0.5px;
+      }
+
+      /* Status Badge */
+      .status-badge {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        background: rgba(0, 255, 135, 0.1);
+        border: 1px solid rgba(0, 255, 135, 0.3);
+        border-radius: 4px;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--status-active);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .status-badge::before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        background: var(--status-active);
+        border-radius: 50%;
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.4;
+        }
+      }
+
+      /* Identity Details */
+      .identity-details {
+        padding: 20px 24px;
+      }
+
+      .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border-subtle);
+      }
+
+      .detail-row:last-child {
+        border-bottom: none;
+      }
+
+      .detail-label {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .detail-value {
+        font-family: var(--font-body);
+        font-size: 14px;
+        color: var(--text-primary);
+      }
+
+      .detail-value.mono {
+        font-family: var(--font-mono);
+        font-size: 12px;
+      }
+
+      /* Quick Actions */
+      .quick-actions {
+        padding: 20px 24px;
+        border-top: 1px solid var(--border-subtle);
+        display: flex;
+        gap: 8px;
+      }
+
+      .action-btn {
+        flex: 1;
+        padding: 10px 12px;
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-default);
+        border-radius: 6px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+      }
+
+      .action-btn:hover {
+        background: var(--bg-hover);
+        border-color: var(--gradient-6);
+        color: var(--text-bright);
+      }
+
+      .action-btn.primary {
+        background: linear-gradient(135deg, var(--gradient-3), var(--gradient-5));
+        border-color: transparent;
+        color: var(--text-bright);
+      }
+
+      .action-btn.primary:hover {
+        filter: brightness(1.1);
+      }
+
+      /* Right Column */
+      .main-content {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      /* Section Cards */
+      .section-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border-subtle);
+      }
+
+      .section-title {
+        font-family: var(--font-display);
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-bright);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .section-title::before {
+        content: '';
+        width: 3px;
+        height: 14px;
+        background: linear-gradient(180deg, var(--gradient-3), var(--gradient-5));
+        border-radius: 2px;
+      }
+
+      .section-badge {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        padding: 3px 8px;
+        background: var(--bg-elevated);
+        border-radius: 4px;
+        color: var(--text-muted);
+      }
+
+      .section-body {
+        padding: 20px;
+      }
+
+      /* Memory State */
       .memory-grid {
-        grid-template-columns: 1fr;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
       }
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <!-- Breadcrumb -->
-    <nav class="breadcrumb">
-      <a href="#">agents</a>
-      <span>/</span>
-      <span>lucidia-prime</span>
-    </nav>
-    
-    <div class="profile-grid">
-      <!-- Left Column - Identity -->
-      <aside class="identity-panel">
-        <div class="identity-header">
-          <div class="status-badge">Active</div>
-          
-          <div class="avatar-container">
-            <div class="avatar-ring"></div>
-            <div class="avatar">L</div>
+
+      .memory-stat {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-subtle);
+        border-radius: 6px;
+        padding: 16px;
+      }
+
+      .memory-stat-label {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+      }
+
+      .memory-stat-value {
+        font-family: var(--font-display);
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--text-bright);
+      }
+
+      .memory-stat-value.hash {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--gradient-6);
+        word-break: break-all;
+        line-height: 1.6;
+      }
+
+      .memory-stat-sub {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--text-muted);
+        margin-top: 4px;
+      }
+
+      /* Coherence Bar */
+      .coherence-bar-container {
+        margin-top: 12px;
+      }
+
+      .coherence-bar-bg {
+        height: 4px;
+        background: var(--bg-void);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+
+      .coherence-bar-fill {
+        height: 100%;
+        width: 87%;
+        background: linear-gradient(90deg, var(--gradient-1), var(--gradient-3), var(--gradient-5));
+        border-radius: 2px;
+        transition: width 0.5s ease;
+      }
+
+      /* Capabilities */
+      .capabilities-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .capability-tag {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-subtle);
+        border-radius: 4px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--text-secondary);
+        transition: all 0.2s;
+      }
+
+      .capability-tag:hover {
+        border-color: var(--gradient-4);
+        color: var(--text-bright);
+      }
+
+      .capability-tag::before {
+        content: '◆';
+        font-size: 8px;
+        color: var(--gradient-4);
+      }
+
+      .capability-tag.subscribed::before {
+        content: '◈';
+        color: var(--gradient-6);
+      }
+
+      /* Tasks */
+      .task-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .task-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-subtle);
+        border-radius: 6px;
+        transition: all 0.2s;
+      }
+
+      .task-item:hover {
+        border-color: var(--border-default);
+      }
+
+      .task-status {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      .task-status.running {
+        background: var(--status-active);
+        box-shadow: 0 0 8px var(--status-active);
+        animation: pulse 1.5s ease-in-out infinite;
+      }
+
+      .task-status.queued {
+        background: var(--status-idle);
+      }
+
+      .task-status.error {
+        background: var(--status-error);
+      }
+
+      .task-info {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .task-name {
+        font-family: var(--font-body);
+        font-size: 13px;
+        color: var(--text-primary);
+        margin-bottom: 2px;
+      }
+
+      .task-meta {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--text-muted);
+      }
+
+      .task-progress {
+        width: 80px;
+        height: 3px;
+        background: var(--bg-void);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+
+      .task-progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--gradient-5), var(--gradient-6));
+        border-radius: 2px;
+      }
+
+      /* Activity Log */
+      .activity-list {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .activity-item {
+        display: flex;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border-subtle);
+      }
+
+      .activity-item:last-child {
+        border-bottom: none;
+      }
+
+      .activity-time {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--text-muted);
+        min-width: 60px;
+        padding-top: 2px;
+      }
+
+      .activity-content {
+        flex: 1;
+      }
+
+      .activity-action {
+        font-family: var(--font-body);
+        font-size: 13px;
+        color: var(--text-primary);
+        margin-bottom: 2px;
+      }
+
+      .activity-action code {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        padding: 2px 6px;
+        background: var(--bg-elevated);
+        border-radius: 3px;
+        color: var(--gradient-6);
+      }
+
+      .activity-detail {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+
+      /* Responsive */
+      @media (max-width: 1024px) {
+        .profile-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .memory-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Breadcrumb -->
+      <nav class="breadcrumb">
+        <a href="#">agents</a>
+        <span>/</span>
+        <span>lucidia-prime</span>
+      </nav>
+
+      <div class="profile-grid">
+        <!-- Left Column - Identity -->
+        <aside class="identity-panel">
+          <div class="identity-header">
+            <div class="status-badge">Active</div>
+
+            <div class="avatar-container">
+              <div class="avatar-ring"></div>
+              <div class="avatar">L</div>
+            </div>
+
+            <h1 class="agent-name">Lucidia Prime</h1>
+            <p class="agent-id">agent:lucidia-prime-001</p>
           </div>
-          
-          <h1 class="agent-name">Lucidia Prime</h1>
-          <p class="agent-id">agent:lucidia-prime-001</p>
-        </div>
-        
-        <div class="identity-details">
-          <div class="detail-row">
-            <span class="detail-label">Created</span>
-            <span class="detail-value">2025-01-15</span>
+
+          <div class="identity-details">
+            <div class="detail-row">
+              <span class="detail-label">Created</span>
+              <span class="detail-value">2025-01-15</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Family</span>
+              <span class="detail-value">Core Orchestrators</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Home Node</span>
+              <span class="detail-value mono">alice.blackroad.lan</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Logic Mode</span>
+              <span class="detail-value mono">trinary (1/0/-1)</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Uptime</span>
+              <span class="detail-value mono">47h 23m</span>
+            </div>
           </div>
-          <div class="detail-row">
-            <span class="detail-label">Family</span>
-            <span class="detail-value">Core Orchestrators</span>
+
+          <div class="quick-actions">
+            <button class="action-btn primary"><span>◉</span> Chat</button>
+            <button class="action-btn"><span>⏸</span> Pause</button>
+            <button class="action-btn"><span>⚙</span> Config</button>
           </div>
-          <div class="detail-row">
-            <span class="detail-label">Home Node</span>
-            <span class="detail-value mono">alice.blackroad.lan</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Logic Mode</span>
-            <span class="detail-value mono">trinary (1/0/-1)</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Uptime</span>
-            <span class="detail-value mono">47h 23m</span>
-          </div>
-        </div>
-        
-        <div class="quick-actions">
-          <button class="action-btn primary">
-            <span>◉</span> Chat
-          </button>
-          <button class="action-btn">
-            <span>⏸</span> Pause
-          </button>
-          <button class="action-btn">
-            <span>⚙</span> Config
-          </button>
-        </div>
-      </aside>
-      
-      <!-- Right Column - Main Content -->
-      <main class="main-content">
-        <!-- Memory State -->
-        <section class="section-card">
-          <header class="section-header">
-            <h2 class="section-title">Memory State</h2>
-            <span class="section-badge">PS-SHA∞</span>
-          </header>
-          <div class="section-body">
-            <div class="memory-grid">
-              <div class="memory-stat">
-                <div class="memory-stat-label">Coherence</div>
-                <div class="memory-stat-value">0.87</div>
-                <div class="coherence-bar-container">
-                  <div class="coherence-bar-bg">
-                    <div class="coherence-bar-fill"></div>
+        </aside>
+
+        <!-- Right Column - Main Content -->
+        <main class="main-content">
+          <!-- Memory State -->
+          <section class="section-card">
+            <header class="section-header">
+              <h2 class="section-title">Memory State</h2>
+              <span class="section-badge">PS-SHA∞</span>
+            </header>
+            <div class="section-body">
+              <div class="memory-grid">
+                <div class="memory-stat">
+                  <div class="memory-stat-label">Coherence</div>
+                  <div class="memory-stat-value">0.87</div>
+                  <div class="coherence-bar-container">
+                    <div class="coherence-bar-bg">
+                      <div class="coherence-bar-fill"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="memory-stat">
+                  <div class="memory-stat-label">Journal Entries</div>
+                  <div class="memory-stat-value">2,847</div>
+                  <div class="memory-stat-sub">+142 today</div>
+                </div>
+                <div class="memory-stat">
+                  <div class="memory-stat-label">Truth State Hash</div>
+                  <div class="memory-stat-value hash">a3f8c2e1b7d4...</div>
+                  <div class="memory-stat-sub">committed 3m ago</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Capabilities -->
+          <section class="section-card">
+            <header class="section-header">
+              <h2 class="section-title">Capabilities</h2>
+              <span class="section-badge">12 registered</span>
+            </header>
+            <div class="section-body">
+              <div class="capabilities-grid">
+                <span class="capability-tag">reasoning.recursive</span>
+                <span class="capability-tag">memory.persist</span>
+                <span class="capability-tag">memory.query</span>
+                <span class="capability-tag subscribed">events.task.*</span>
+                <span class="capability-tag subscribed">events.contradiction.*</span>
+                <span class="capability-tag">synthesis.paraconsistent</span>
+                <span class="capability-tag">orchestration.delegate</span>
+                <span class="capability-tag">tool.web_search</span>
+                <span class="capability-tag">tool.code_exec</span>
+                <span class="capability-tag subscribed">events.health.*</span>
+                <span class="capability-tag">context.branch</span>
+                <span class="capability-tag">human.escalate</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- Current Tasks -->
+          <section class="section-card">
+            <header class="section-header">
+              <h2 class="section-title">Current Tasks</h2>
+              <span class="section-badge">3 active</span>
+            </header>
+            <div class="section-body">
+              <div class="task-list">
+                <div class="task-item">
+                  <div class="task-status running"></div>
+                  <div class="task-info">
+                    <div class="task-name">Memory consolidation pass</div>
+                    <div class="task-meta">task:mem-consolidate-7a2f • started 12m ago</div>
+                  </div>
+                  <div class="task-progress">
+                    <div class="task-progress-fill" style="width: 67%"></div>
+                  </div>
+                </div>
+                <div class="task-item">
+                  <div class="task-status running"></div>
+                  <div class="task-info">
+                    <div class="task-name">Monitor contradiction quarantine</div>
+                    <div class="task-meta">task:cq-watch-001 • continuous</div>
+                  </div>
+                  <div class="task-progress">
+                    <div class="task-progress-fill" style="width: 100%"></div>
+                  </div>
+                </div>
+                <div class="task-item">
+                  <div class="task-status queued"></div>
+                  <div class="task-info">
+                    <div class="task-name">Sync with Octavia worker pool</div>
+                    <div class="task-meta">task:sync-octavia-daily • queued</div>
+                  </div>
+                  <div class="task-progress">
+                    <div class="task-progress-fill" style="width: 0%"></div>
                   </div>
                 </div>
               </div>
-              <div class="memory-stat">
-                <div class="memory-stat-label">Journal Entries</div>
-                <div class="memory-stat-value">2,847</div>
-                <div class="memory-stat-sub">+142 today</div>
-              </div>
-              <div class="memory-stat">
-                <div class="memory-stat-label">Truth State Hash</div>
-                <div class="memory-stat-value hash">a3f8c2e1b7d4...</div>
-                <div class="memory-stat-sub">committed 3m ago</div>
-              </div>
             </div>
-          </div>
-        </section>
-        
-        <!-- Capabilities -->
-        <section class="section-card">
-          <header class="section-header">
-            <h2 class="section-title">Capabilities</h2>
-            <span class="section-badge">12 registered</span>
-          </header>
-          <div class="section-body">
-            <div class="capabilities-grid">
-              <span class="capability-tag">reasoning.recursive</span>
-              <span class="capability-tag">memory.persist</span>
-              <span class="capability-tag">memory.query</span>
-              <span class="capability-tag subscribed">events.task.*</span>
-              <span class="capability-tag subscribed">events.contradiction.*</span>
-              <span class="capability-tag">synthesis.paraconsistent</span>
-              <span class="capability-tag">orchestration.delegate</span>
-              <span class="capability-tag">tool.web_search</span>
-              <span class="capability-tag">tool.code_exec</span>
-              <span class="capability-tag subscribed">events.health.*</span>
-              <span class="capability-tag">context.branch</span>
-              <span class="capability-tag">human.escalate</span>
-            </div>
-          </div>
-        </section>
-        
-        <!-- Current Tasks -->
-        <section class="section-card">
-          <header class="section-header">
-            <h2 class="section-title">Current Tasks</h2>
-            <span class="section-badge">3 active</span>
-          </header>
-          <div class="section-body">
-            <div class="task-list">
-              <div class="task-item">
-                <div class="task-status running"></div>
-                <div class="task-info">
-                  <div class="task-name">Memory consolidation pass</div>
-                  <div class="task-meta">task:mem-consolidate-7a2f • started 12m ago</div>
+          </section>
+
+          <!-- Activity Log -->
+          <section class="section-card">
+            <header class="section-header">
+              <h2 class="section-title">Recent Activity</h2>
+              <span class="section-badge">last 1h</span>
+            </header>
+            <div class="section-body">
+              <div class="activity-list">
+                <div class="activity-item">
+                  <span class="activity-time">3m ago</span>
+                  <div class="activity-content">
+                    <div class="activity-action">Committed truth state <code>a3f8c2e1</code></div>
+                    <div class="activity-detail">+14 journal entries merged</div>
+                  </div>
                 </div>
-                <div class="task-progress">
-                  <div class="task-progress-fill" style="width: 67%"></div>
+                <div class="activity-item">
+                  <span class="activity-time">8m ago</span>
+                  <div class="activity-content">
+                    <div class="activity-action">Delegated task to <code>researcher-02</code></div>
+                    <div class="activity-detail">
+                      web search: "partition function quantum mechanics"
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div class="task-item">
-                <div class="task-status running"></div>
-                <div class="task-info">
-                  <div class="task-name">Monitor contradiction quarantine</div>
-                  <div class="task-meta">task:cq-watch-001 • continuous</div>
+                <div class="activity-item">
+                  <span class="activity-time">15m ago</span>
+                  <div class="activity-content">
+                    <div class="activity-action">
+                      Resolved contradiction via <code>mirror-pair</code>
+                    </div>
+                    <div class="activity-detail">context branched: temporal-scope-mismatch</div>
+                  </div>
                 </div>
-                <div class="task-progress">
-                  <div class="task-progress-fill" style="width: 100%"></div>
+                <div class="activity-item">
+                  <span class="activity-time">28m ago</span>
+                  <div class="activity-content">
+                    <div class="activity-action">
+                      Received event <code>events.task.complete</code>
+                    </div>
+                    <div class="activity-detail">from: analyst-05 • task: data-parse-q4</div>
+                  </div>
                 </div>
-              </div>
-              <div class="task-item">
-                <div class="task-status queued"></div>
-                <div class="task-info">
-                  <div class="task-name">Sync with Octavia worker pool</div>
-                  <div class="task-meta">task:sync-octavia-daily • queued</div>
-                </div>
-                <div class="task-progress">
-                  <div class="task-progress-fill" style="width: 0%"></div>
+                <div class="activity-item">
+                  <span class="activity-time">41m ago</span>
+                  <div class="activity-content">
+                    <div class="activity-action">Escalated to human-in-loop</div>
+                    <div class="activity-detail">
+                      high-impact decision: resource allocation change
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
-        
-        <!-- Activity Log -->
-        <section class="section-card">
-          <header class="section-header">
-            <h2 class="section-title">Recent Activity</h2>
-            <span class="section-badge">last 1h</span>
-          </header>
-          <div class="section-body">
-            <div class="activity-list">
-              <div class="activity-item">
-                <span class="activity-time">3m ago</span>
-                <div class="activity-content">
-                  <div class="activity-action">Committed truth state <code>a3f8c2e1</code></div>
-                  <div class="activity-detail">+14 journal entries merged</div>
-                </div>
-              </div>
-              <div class="activity-item">
-                <span class="activity-time">8m ago</span>
-                <div class="activity-content">
-                  <div class="activity-action">Delegated task to <code>researcher-02</code></div>
-                  <div class="activity-detail">web search: "partition function quantum mechanics"</div>
-                </div>
-              </div>
-              <div class="activity-item">
-                <span class="activity-time">15m ago</span>
-                <div class="activity-content">
-                  <div class="activity-action">Resolved contradiction via <code>mirror-pair</code></div>
-                  <div class="activity-detail">context branched: temporal-scope-mismatch</div>
-                </div>
-              </div>
-              <div class="activity-item">
-                <span class="activity-time">28m ago</span>
-                <div class="activity-content">
-                  <div class="activity-action">Received event <code>events.task.complete</code></div>
-                  <div class="activity-detail">from: analyst-05 • task: data-parse-q4</div>
-                </div>
-              </div>
-              <div class="activity-item">
-                <span class="activity-time">41m ago</span>
-                <div class="activity-content">
-                  <div class="activity-action">Escalated to human-in-loop</div>
-                  <div class="activity-detail">high-impact decision: resource allocation change</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
+          </section>
+        </main>
+      </div>
     </div>
-  </div>
-</body>
+  </body>
 </html>
