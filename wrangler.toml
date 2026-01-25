@@ -8,7 +8,23 @@ REPO_NAME = "blackroad-os"
 ORG_NAME = "BlackRoad-OS"
 ENVIRONMENT = "production"
 
-# Add KV, D1, R2 bindings as needed
+# D1 Database bindings
+[[d1_databases]]
+binding = "DB_SAAS"
+database_name = "blackroad-saas"
+database_id = "c7bec6d8-42fa-49fb-9d8c-57d626dde6b9"
+
+[[d1_databases]]
+binding = "DB_AGENTS"
+database_name = "apollo-agent-registry"
+database_id = "0abd9447-9479-4138-ab04-cd0ae47b2e30"
+
+# KV for caching (uncomment when ready)
 # [[kv_namespaces]]
 # binding = "CACHE"
 # id = "YOUR_KV_ID"
+
+# R2 for file storage (uncomment when ready)
+# [[r2_buckets]]
+# binding = "STORAGE"
+# bucket_name = "blackroad-assets"
