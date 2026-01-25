@@ -31,10 +31,10 @@ export function getEpisodeById(id: string): Episode | undefined {
     return {
       id: registryEpisode.id,
       title: registryEpisode.title,
-      agent: registryEpisode.agentDesignation || 'unknown',
+      agent: registryEpisode.agentDesignation || 'lucidia',
       date: registryEpisode.date,
       mp3: registryEpisode.audioFile,
-      transcript: true,
+      transcript: Boolean(registryEpisode.contentPath),
     };
   }
   const chronicles = readChronicles();
