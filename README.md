@@ -16,6 +16,20 @@ Run `pnpm br-orchestrate render` to regenerate this README based on `orchestra.y
 | --- | --- | --- | --- | --- | --- |
 | core-web | prod | core | https://web.blackroad.io | /api/health | gateway, operator |
 
+## Packs
+- education
+- infra-devops
+- creator-studio
+- finance
+- legal
+- research-lab
+
+## Environments
+| Environment | Domain Root |
+| --- | --- |
+| dev | dev.blackroad.io |
+| prod | blackroad.io |
+
 ## Topology
 ```mermaid
 graph LR

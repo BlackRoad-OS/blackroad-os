@@ -51,7 +51,29 @@ function readme(manifest: Manifest) {
     console.warn('Warning: README.stub.md not found or unreadable:', err);
   }
   const table = `| Service | Env | Repo | URL | Health | Depends |\n| --- | --- | --- | --- | --- | --- |\n${rows}`
-  return [header.trim(), '', '## Service Matrix', table, '', '## Topology', mermaid, ''].join('\n')
+  const packs = manifest.packs.length
+    ? manifest.packs.map((pack) => `- ${pack}`).join('\n')
+    : '_No packs defined._'
+  const environmentsRows = Object.entries(manifest.environments)
+    .map(([name, env]) => `| ${name} | ${env.domain_root} |`)
+    .join('\n')
+  const environmentsTable = `| Environment | Domain Root |\n| --- | --- |\n${environmentsRows}`
+  return [
+    header.trim(),
+    '',
+    '## Service Matrix',
+    table,
+    '',
+    '## Packs',
+    packs,
+    '',
+    '## Environments',
+    environmentsTable,
+    '',
+    '## Topology',
+    mermaid,
+    '',
+  ].join('\n')
 }
 
 export function render(manifest: Manifest, cwd = process.cwd()) {
