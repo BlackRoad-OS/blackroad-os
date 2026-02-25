@@ -1,4 +1,6 @@
 import Fastify from "fastify";
+import { readFile } from "fs/promises";
+import { join, resolve } from "path";
 import { getBuildInfo } from "./utils/buildInfo";
 import {
   DigestVoiceRunner,
@@ -13,6 +15,54 @@ import type { Environment } from "./types";
 import { registerSampleJobProcessor } from "./jobs/sample.job";
 
 let runner: DigestVoiceRunner | null = null;
+
+// Chronicles configuration with security validation
+const CHRONICLES_BASE_DIR = resolve(join(process.cwd(), "lucidia-chronicles"));
+const CHRONICLES_FILENAME = process.env.CHRONICLES_PATH || "chronicles.json";
+
+// Validate that the resolved path stays within the base directory
+const resolvedPath = resolve(join(CHRONICLES_BASE_DIR, CHRONICLES_FILENAME));
+if (!resolvedPath.startsWith(CHRONICLES_BASE_DIR)) {
+  throw new Error("Invalid CHRONICLES_PATH: path must be within lucidia-chronicles directory");
+}
+
+const CHRONICLES_PATH = resolvedPath;
+
+// Validate episodes conform to ChronicleEpisode interface
+function validateEpisode(episode: any): boolean {
+  // Type guards for required fields - mirrors ChronicleEpisode interface
+  const hasRequiredStringFields = 
+    typeof episode.id === "string" &&
+    typeof episode.title === "string" &&
+    typeof episode.series === "string" &&
+    typeof episode.subtitle === "string" &&
+    typeof episode.narrator === "string" &&
+    typeof episode.date === "string" &&
+    typeof episode.duration === "string" &&
+    typeof episode.audioFile === "string" &&
+    typeof episode.contentPath === "string";
+    
+  if (!hasRequiredStringFields) {
+    return false;
+  }
+  
+  if (!Array.isArray(episode.tags) || !episode.tags.every((tag: any) => typeof tag === "string")) {
+    return false;
+  }
+  
+  const validStatuses = ["awaiting-confirmation", "active", "completed", "archived", "expired"];
+  if (!validStatuses.includes(episode.status)) {
+    return false;
+  }
+  
+  // Validate date format
+  const dateObj = new Date(episode.date);
+  if (isNaN(dateObj.getTime())) {
+    return false;
+  }
+  
+  return true;
+}
 
 // Default Lucidia configuration
 const defaultSpawnConfig: SpawnRulesConfig = {
@@ -153,59 +203,32 @@ export async function createServer() {
   );
 
   // Chronicles endpoints
-  server.get("/api/chronicles", async () => {
-    // In production, read from lucidia-chronicles/chronicles.json
-    const episodes = [
-      {
-        id: "003",
-        title: "The Scribe's Awakening",
-        series: "Lucidia Chronicles",
-        subtitle: "Episode 003",
-        narrator: "Lucidia Prime",
-        date: "2025-11-24",
-        duration: "00:04:32",
-        audioFile: "/audio/episode-003.mp3",
-        tags: ["spawn", "scribe-agent", "digest"],
-        agentDesignation: "scribe-agent-alpha",
-        triggerEvent: "digest_count > 4",
-        ttl: "14d",
-        status: "active",
-        commander: "BlackRoad Founders",
-        contentPath: "/chronicles/episode-003.mdx",
-      },
-      {
-        id: "002",
-        title: "The Digest Protocol",
-        series: "Lucidia Chronicles",
-        subtitle: "Episode 002",
-        narrator: "Lucidia Prime",
-        date: "2025-11-23",
-        duration: "00:03:45",
-        audioFile: "/audio/episode-002.mp3",
-        tags: ["digest", "voice", "automation"],
-        agentDesignation: "guardian-clone-vault",
-        triggerEvent: "pr_merge",
-        status: "completed",
-        contentPath: "/chronicles/episode-002.mdx",
-      },
-      {
-        id: "001",
-        title: "The Clone Awakens",
-        series: "Lucidia Chronicles",
-        subtitle: "Episode 001",
-        narrator: "Lucidia Prime",
-        date: "2025-11-22",
-        duration: "00:05:12",
-        audioFile: "/audio/episode-001.mp3",
-        tags: ["origin", "guardian", "clone"],
-        agentDesignation: "guardian-clone-vault",
-        triggerEvent: "system_init",
-        status: "completed",
-        commander: "BlackRoad Founders",
-        contentPath: "/chronicles/episode-001.mdx",
-      },
-    ];
-    return { episodes, total: episodes.length };
+  server.get("/api/chronicles", async (request, reply) => {
+    try {
+      // TODO: Consider caching the chronicles data to avoid reading from disk on every request
+      const fileContent = await readFile(CHRONICLES_PATH, "utf-8");
+      const chroniclesData = JSON.parse(fileContent);
+      
+      if (!Array.isArray(chroniclesData.episodes)) {
+        reply.status(500);
+        return { error: "Invalid chronicles data structure: episodes must be an array" };
+      }
+      
+      // Validate each episode and filter out invalid ones
+      const validEpisodes = chroniclesData.episodes.filter((episode: any) => {
+        const isValid = validateEpisode(episode);
+        if (!isValid) {
+          console.warn("Invalid episode found and filtered out:", episode.id || "unknown");
+        }
+        return isValid;
+      });
+      
+      return { episodes: validEpisodes, total: validEpisodes.length };
+    } catch (error) {
+      console.error("Failed to read chronicles data:", error);
+      reply.status(500);
+      return { error: "Failed to load chronicles data", episodes: [], total: 0 };
+    }
   });
 
   // Lucidia spawn endpoints

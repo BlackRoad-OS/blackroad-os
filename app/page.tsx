@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { EnvCard } from "../components/EnvCard";
 import { ChronicleCard } from "../components/ChronicleCard";
 import type { Environment } from "../src/types";
@@ -13,26 +14,42 @@ const environments: Environment[] = [
   { id: "dev", name: "Development", region: "us-east-2", status: "healthy" },
 ];
 
-// Sample chronicle episode - in production, fetch from /api/chronicles
-const sampleEpisode: ChronicleEpisode = {
-  id: "003",
-  title: "The Scribe's Awakening",
-  series: "Lucidia Chronicles",
-  subtitle: "Episode 003",
-  narrator: "Lucidia Prime",
-  date: "2025-11-24",
-  duration: "00:04:32",
-  audioFile: "/audio/episode-003.mp3",
-  tags: ["spawn", "scribe-agent", "digest"],
-  agentDesignation: "scribe-agent-alpha",
-  triggerEvent: "digest_count > 4",
-  ttl: "14d",
-  status: "active",
-  commander: "BlackRoad Founders",
-  contentPath: "/chronicles/episode-003.mdx",
-};
-
 export default function DashboardPage() {
+  const [latestEpisode, setLatestEpisode] = useState<ChronicleEpisode | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchLatestEpisode() {
+      try {
+        const response = await fetch("/api/chronicles");
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        if (data.episodes && data.episodes.length > 0) {
+          // Filter out episodes with invalid dates and sort by date descending to get the latest episode
+          const episodesWithValidDates = data.episodes
+            .map((episode: ChronicleEpisode) => {
+              const time = new Date(episode.date).getTime();
+              return Number.isNaN(time) ? null : { episode, time };
+            })
+            .filter((entry: any) => entry !== null) as { episode: ChronicleEpisode; time: number }[];
+
+          if (episodesWithValidDates.length > 0) {
+            episodesWithValidDates.sort((a, b) => b.time - a.time);
+            setLatestEpisode(episodesWithValidDates[0].episode);
+          } else {
+            console.warn("No episodes with valid dates were returned from /api/chronicles");
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch latest episode:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchLatestEpisode();
+  }, []);
   return (
     <div>
       <header className="header">
@@ -66,11 +83,17 @@ export default function DashboardPage() {
             <a href="/chronicles" className="btn btn-secondary">View All</a>
           </div>
           <div className="chronicle-grid">
-            <ChronicleCard
-              episode={sampleEpisode}
-              onPlay={() => console.log("Playing episode:", sampleEpisode.id)}
-              onViewTranscript={() => console.log("Viewing transcript:", sampleEpisode.id)}
-            />
+            {loading ? (
+              <p style={{ color: "var(--text-secondary)" }}>Loading latest episode...</p>
+            ) : latestEpisode ? (
+              <ChronicleCard
+                episode={latestEpisode}
+                onPlay={() => console.log("Playing episode:", latestEpisode.id)}
+                onViewTranscript={() => console.log("Viewing transcript:", latestEpisode.id)}
+              />
+            ) : (
+              <p style={{ color: "var(--text-secondary)" }}>No episodes available</p>
+            )}
           </div>
         </section>
 
