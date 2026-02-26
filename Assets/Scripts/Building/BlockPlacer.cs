@@ -16,6 +16,12 @@ namespace BlackRoad.Worldbuilder.Building
         private Camera _camera;
         private BlockType _currentBlock;
 
+        /// <summary>
+        /// Programmatically set the active block type.
+        /// Called by <see cref="BlackRoad.Worldbuilder.UI.BlockSelectionBar"/> when the player changes selection.
+        /// </summary>
+        public void SetBlock(BlockType block) => _currentBlock = block;
+
         private void Awake()
         {
             _camera = GetComponent<Camera>();
