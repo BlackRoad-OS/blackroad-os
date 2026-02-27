@@ -39,9 +39,6 @@ jobs:
         run: |
           sleep 5
           curl -s https://blackroad-agents.blackroad.workers.dev/health | python3 -m json.tool || \
-          curl -s https://blackroad-agents.blackroad.workers.dev/ | head -100 | python3 -c "
-import json,sys
-try:
-  d=json.load(sys.stdin)
-  print('✅ Worker live:', d.get('status','ok'))
-except: print('Worker responding')"
+            curl -s https://blackroad-agents.blackroad.workers.dev/ | head -100 | \
+            python3 -c "import json,sys; d=json.load(sys.stdin); print('Worker live:', d.get('status','ok'))" || \
+            echo "Worker responding"
