@@ -84,7 +84,7 @@ export default function DashboardPage() {
               <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "24px", color: "var(--text-secondary)" }}>
                 Loading environments...
               </div>
-            ) : environments.length === 0 ? (
+            ) : !error && environments.length === 0 ? (
               <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "24px", color: "var(--text-secondary)" }}>
                 No environments found
               </div>
