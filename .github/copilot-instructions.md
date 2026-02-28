@@ -21,7 +21,7 @@ You are working on **BlackRoad OS**, a meta-orchestration platform with:
 source .trinity/greenlight/scripts/memory-greenlight-templates.sh
 
 # Start work
-gl_wip "task-id" "Status update" "scale" "domain"
+gl_wip "task-id" "Status update" "agent" "scale"
 
 # Complete phase  
 gl_phase_done "phase-name" "Project" "Summary" "scale"
