@@ -104,7 +104,7 @@ rl_template_deploy "name" "url" "platform"
 
 ---
 
-## �� BlackRoad Agents
+## 🤖 BlackRoad Agents
 
 When working on tasks, coordinate with the appropriate agents:
 
