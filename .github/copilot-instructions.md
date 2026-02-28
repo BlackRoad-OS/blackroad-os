@@ -172,11 +172,13 @@ Log deployment/completion to appropriate Light system
 ## 🎯 Quick Commands
 
 ```bash
-# Check Trinity compliance
-.trinity/system/trinity-check-compliance.sh
+# Check Trinity compliance (requires arguments)
+# Usage example:
+# .trinity/system/trinity-check-compliance.sh "entity-name" "type"
 
-# Test Trinity system
-.trinity/system/trinity-record-test.sh
+# Test Trinity system (requires positional arguments)
+# Usage example (see .trinity/system scripts for full argument list):
+# .trinity/system/trinity-record-test.sh "entity-name" "test-id" "status"
 
 # Source all templates
 source .trinity/greenlight/scripts/memory-greenlight-templates.sh
