@@ -719,15 +719,15 @@
   <!-- Modal 1: Simple Confirmation -->
   <div>
     <div class="demo-label">Confirmation</div>
-    <div class="demo-modal modal-confirm">
+    <div class="demo-modal modal-confirm" role="dialog" aria-modal="true" aria-labelledby="modal-confirm-title" aria-describedby="modal-confirm-description">
       <div class="modal-confirm-body">
         <div class="modal-confirm-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
           </svg>
         </div>
-        <div class="modal-confirm-title">Sync all agents?</div>
-        <div class="modal-confirm-text">This will synchronize memory states across all 247 agents in the cluster. This may take a few minutes.</div>
+        <div class="modal-confirm-title" id="modal-confirm-title">Sync all agents?</div>
+        <div class="modal-confirm-text" id="modal-confirm-description">This will synchronize memory states across all 247 agents in the cluster. This may take a few minutes.</div>
       </div>
       <div class="modal-confirm-footer">
         <button class="btn btn-secondary">Cancel</button>
