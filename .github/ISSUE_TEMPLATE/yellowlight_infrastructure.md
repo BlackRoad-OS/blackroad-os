@@ -81,10 +81,7 @@ assignees: ''
 # Once work starts, log to YellowLight:
 source .trinity/yellowlight/scripts/memory-yellowlight-templates.sh
 
-# Start deployment
-yl_deployment_started "service-name" "platform" "environment" "version"
-
-# Success
+# Log successful deployment
 yl_deployment_succeeded "service-name" "platform" "url" "version" "environment"
 
 # Configure integration
