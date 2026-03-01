@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { Manifest } from './schema.js'
+import { hasTrinity, getTrinityStatus } from './trinity.js'
 
 function matrix(manifest: Manifest) {
   const services = Object.entries(manifest.services).map(([name, svc]) => ({
@@ -10,13 +11,21 @@ function matrix(manifest: Manifest) {
     url: svc.url,
     depends: svc.depends,
   }))
-  return {
+  
+  const matrixData: any = {
     version: manifest.version,
     repos: manifest.repos,
     packs: manifest.packs,
     environments: manifest.environments,
     services,
   }
+  
+  // Include Trinity data if available
+  if (manifest.trinity) {
+    matrixData.trinity = manifest.trinity
+  }
+  
+  return matrixData
 }
 
 function envrc(manifest: Manifest) {
@@ -51,7 +60,75 @@ function readme(manifest: Manifest) {
     console.warn('Warning: README.stub.md not found or unreadable:', err);
   }
   const table = `| Service | Env | Repo | URL | Health | Depends |\n| --- | --- | --- | --- | --- | --- |\n${rows}`
-  return [header.trim(), '', '## Service Matrix', table, '', '## Topology', mermaid, ''].join('\n')
+  
+  // Add Trinity section if available
+  const trinitySection = getTrinitySection(manifest)
+  
+  return [header.trim(), '', '## Service Matrix', table, '', '## Topology', mermaid, trinitySection, ''].join('\n')
+}
+
+function getTrinitySection(manifest: Manifest): string {
+  if (!manifest.trinity) {
+    return ''
+  }
+
+  const status = getTrinityStatus()
+  if (!status.enabled) {
+    return ''
+  }
+
+  const sections = [
+    '',
+    '## 🌈 Trinity System',
+    '',
+  ]
+
+  // RedLight templates
+  if (status.redlight.enabled && manifest.trinity.redlight?.templates) {
+    const templates = manifest.trinity.redlight.templates
+    if (templates.length > 0) {
+      sections.push('### 🔴 RedLight Templates')
+      sections.push('')
+      
+      const byCategory: Record<string, typeof templates> = {}
+      for (const template of templates) {
+        if (!byCategory[template.category]) {
+          byCategory[template.category] = []
+        }
+        byCategory[template.category].push(template)
+      }
+      
+      for (const [category, categoryTemplates] of Object.entries(byCategory)) {
+        sections.push(`**${category}** (${categoryTemplates.length} templates)`)
+        sections.push('')
+        for (const template of categoryTemplates.slice(0, 5)) {
+          sections.push(`- ${template.name} (\`${template.id}\`)`)
+        }
+        if (categoryTemplates.length > 5) {
+          sections.push(`- *...and ${categoryTemplates.length - 5} more*`)
+        }
+        sections.push('')
+      }
+    }
+  }
+
+  // GreenLight status
+  if (status.greenlight.enabled) {
+    sections.push('### 💚 GreenLight')
+    sections.push('')
+    sections.push('Project management and collaboration system enabled.')
+    sections.push('')
+  }
+
+  // YellowLight status
+  if (status.yellowlight.enabled) {
+    sections.push('### 💛 YellowLight')
+    sections.push('')
+    sections.push('Infrastructure orchestration system enabled.')
+    sections.push('')
+  }
+
+  return sections.join('\n')
 }
 
 export function render(manifest: Manifest, cwd = process.cwd()) {

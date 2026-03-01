@@ -35,5 +35,227 @@
         "operator"
       ]
     }
-  ]
+  ],
+  "trinity": {
+    "redlight": {
+      "enabled": true,
+      "templates": [
+        {
+          "id": "black-road-os-ultimate--2-",
+          "name": "Black Road Os Ultimate (2)",
+          "category": "website",
+          "file": ".trinity/redlight/templates/black-road-os-ultimate (2).html",
+          "tags": [
+            "website"
+          ]
+        },
+        {
+          "id": "blackroad-3d-world",
+          "name": "Blackroad 3d World",
+          "category": "world",
+          "file": ".trinity/redlight/templates/blackroad-3d-world.html",
+          "tags": [
+            "world"
+          ]
+        },
+        {
+          "id": "blackroad-animation",
+          "name": "Blackroad Animation",
+          "category": "animation",
+          "file": ".trinity/redlight/templates/blackroad-animation.html",
+          "tags": [
+            "animation"
+          ]
+        },
+        {
+          "id": "blackroad-architecture-visual",
+          "name": "Blackroad Architecture Visual",
+          "category": "website",
+          "file": ".trinity/redlight/templates/blackroad-architecture-visual.html",
+          "tags": [
+            "website"
+          ]
+        },
+        {
+          "id": "blackroad-earth-biomes",
+          "name": "Blackroad Earth Biomes",
+          "category": "world",
+          "file": ".trinity/redlight/templates/blackroad-earth-biomes.html",
+          "tags": [
+            "world"
+          ]
+        },
+        {
+          "id": "blackroad-earth-game",
+          "name": "Blackroad Earth Game",
+          "category": "world",
+          "file": ".trinity/redlight/templates/blackroad-earth-game.html",
+          "tags": [
+            "world"
+          ]
+        },
+        {
+          "id": "blackroad-earth-real",
+          "name": "Blackroad Earth Real",
+          "category": "world",
+          "file": ".trinity/redlight/templates/blackroad-earth-real.html",
+          "tags": [
+            "world"
+          ]
+        },
+        {
+          "id": "blackroad-earth-street",
+          "name": "Blackroad Earth Street",
+          "category": "world",
+          "file": ".trinity/redlight/templates/blackroad-earth-street.html",
+          "tags": [
+            "world"
+          ]
+        },
+        {
+          "id": "blackroad-earth",
+          "name": "Blackroad Earth",
+          "category": "world",
+          "file": ".trinity/redlight/templates/blackroad-earth.html",
+          "tags": [
+            "world"
+          ]
+        },
+        {
+          "id": "blackroad-game",
+          "name": "Blackroad Game",
+          "category": "game",
+          "file": ".trinity/redlight/templates/blackroad-game.html",
+          "tags": [
+            "game"
+          ]
+        },
+        {
+          "id": "blackroad-living-earth",
+          "name": "Blackroad Living Earth",
+          "category": "world",
+          "file": ".trinity/redlight/templates/blackroad-living-earth.html",
+          "tags": [
+            "world"
+          ]
+        },
+        {
+          "id": "blackroad-living-planet",
+          "name": "Blackroad Living Planet",
+          "category": "world",
+          "file": ".trinity/redlight/templates/blackroad-living-planet.html",
+          "tags": [
+            "world"
+          ]
+        },
+        {
+          "id": "blackroad-living-world",
+          "name": "Blackroad Living World",
+          "category": "world",
+          "file": ".trinity/redlight/templates/blackroad-living-world.html",
+          "tags": [
+            "world"
+          ]
+        },
+        {
+          "id": "blackroad-metaverse",
+          "name": "Blackroad Metaverse",
+          "category": "website",
+          "file": ".trinity/redlight/templates/blackroad-metaverse.html",
+          "tags": [
+            "website"
+          ]
+        },
+        {
+          "id": "blackroad-motion",
+          "name": "Blackroad Motion",
+          "category": "animation",
+          "file": ".trinity/redlight/templates/blackroad-motion.html",
+          "tags": [
+            "animation"
+          ]
+        },
+        {
+          "id": "blackroad-ultimate",
+          "name": "Blackroad Ultimate",
+          "category": "website",
+          "file": ".trinity/redlight/templates/blackroad-ultimate.html",
+          "tags": [
+            "website"
+          ]
+        },
+        {
+          "id": "blackroad-world-template",
+          "name": "Blackroad World Template",
+          "category": "world",
+          "file": ".trinity/redlight/templates/blackroad-world-template.html",
+          "tags": [
+            "world"
+          ]
+        },
+        {
+          "id": "blackroad-world-v2",
+          "name": "Blackroad World V2",
+          "category": "world",
+          "file": ".trinity/redlight/templates/blackroad-world-v2.html",
+          "tags": [
+            "world"
+          ]
+        },
+        {
+          "id": "blackroad-brand-take-2",
+          "name": "Blackroad Brand Take 2",
+          "category": "website",
+          "file": ".trinity/redlight/templates/blackroad_brand_take_2.html",
+          "tags": [
+            "website"
+          ]
+        },
+        {
+          "id": "blackroad-os-brand-kit-pretty",
+          "name": "Blackroad Os Brand Kit Pretty",
+          "category": "website",
+          "file": ".trinity/redlight/templates/blackroad_os_brand_kit_pretty.html",
+          "tags": [
+            "website"
+          ]
+        },
+        {
+          "id": "earth-replica",
+          "name": "Earth Replica",
+          "category": "world",
+          "file": ".trinity/redlight/templates/earth-replica.html",
+          "tags": [
+            "world"
+          ]
+        },
+        {
+          "id": "schematiq-animation",
+          "name": "Schematiq Animation",
+          "category": "animation",
+          "file": ".trinity/redlight/templates/schematiq-animation.html",
+          "tags": [
+            "animation"
+          ]
+        },
+        {
+          "id": "schematiq-page",
+          "name": "Schematiq Page",
+          "category": "design",
+          "file": ".trinity/redlight/templates/schematiq-page.html",
+          "tags": [
+            "design"
+          ]
+        }
+      ]
+    },
+    "greenlight": {
+      "enabled": true,
+      "tasks": []
+    },
+    "yellowlight": {
+      "enabled": true,
+      "deployments": []
+    }
+  }
 }
