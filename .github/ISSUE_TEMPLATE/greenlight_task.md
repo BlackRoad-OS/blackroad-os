@@ -1,65 +1,101 @@
 ---
-name: 💚 GreenLight Task
-about: Project & collaboration work - tracking, coordination, events, intelligence
+name: 🟢 GreenLight Task
+about: Project management, features, workflows, collaboration tasks
 title: "[GreenLight] "
-labels: type:greenlight, status:backlog
+labels: greenlight, type:project, status:backlog
 assignees: ''
 ---
 
-## 💚 GreenLight Task Summary
-<!-- One-sentence description of the project/collaboration task -->
+## 🟢 GreenLight Task — Project Management
 
-## Category
-- [ ] State Tracking & Event Logging
-- [ ] Multi-Claude Coordination
-- [ ] NATS Event Bus Integration
-- [ ] Memory System (PS-SHA∞)
-- [ ] Context Propagation (Layer 12)
-- [ ] Analytics & Observability (Layer 13)
-- [ ] AI Agent Coordination (Layer 14)
-- [ ] Integration (Slack/Notion/Linear/etc.)
+**GreenLight tracks the state and progress of everything in BlackRoad OS.**
+
+### Summary
+<!-- One-sentence description of the task -->
+
+### Type
+- [ ] ✨ Feature development
+- [ ] 🔄 Workflow automation
+- [ ] 📊 Project management
+- [ ] 🤝 Team coordination
+- [ ] 🧠 AI agent task
+- [ ] 📋 Task tracking
 - [ ] Other:
 
-## Current State
-<!-- What's the current project/collaboration status? -->
+### Scale Indicator
+<!-- Select the scale of this task -->
+- [ ] 👉 Micro (single file/function)
+- [ ] 🧩 Component (module/service)
+- [ ] 📦 Package (library/SDK)
+- [ ] 🎭 Project (full application)
+- [ ] 🌸 Platform (multiple services)
+- [ ] 🌌 Universal (ecosystem-wide)
 
-## Desired Outcome
-<!-- What intelligence/coordination should exist after this work? -->
+### Domain
+<!-- Which domain does this belong to? -->
+- [ ] 🛣️ Platform (core infrastructure)
+- [ ] 🌀 AI (agents, models, intelligence)
+- [ ] ⛓️ Chain (blockchain integration)
+- [ ] 💳 Billing (payments, subscriptions)
+- [ ] 🎨 Design (UI/UX, templates)
+- [ ] 📚 Docs (documentation)
+- [ ] 🔧 DevOps (CI/CD, infrastructure)
+- [ ] Other:
 
-## Integration Layers Affected
-<!-- Which of the 14 GreenLight layers does this touch? -->
-- Layer: 
-- Impact:
+### Priority
+- [ ] 🔥 P0 (critical, blocking)
+- [ ] 🌟 P1 (high, important)
+- [ ] ⭐ P2 (medium, nice-to-have)
+- [ ] 💫 P3 (low, future)
 
-## Emoji State
-<!-- Which emoji state(s) represent this work? (See GREENLIGHT_EMOJI_DICTIONARY.md) -->
-- Starting: 
-- In Progress: 
-- Complete: 
+### Effort Size
+- [ ] 🫧 Trivial (< 1 hour)
+- [ ] 🍖 Small (1-4 hours)
+- [ ] 🥩 Medium (1-2 days)
+- [ ] 🦴 Large (3-5 days)
+- [ ] 🌍 Colossal (> 1 week)
 
-## NATS Topics
-<!-- What NATS event topics will this publish to? -->
-- Topic: 
-- Event Type:
+### Description
+<!-- Detailed description of what needs to be done -->
 
-## Multi-Claude Coordination
-<!-- If this involves multiple Claude agents, list them -->
-- Agent 1:
-- Agent 2:
-- Coordination Method:
+### Success Criteria
+- [ ] Criterion 1
+- [ ] Criterion 2
+- [ ] Criterion 3
 
-## Memory Logging Template
-<!-- Which GreenLight template function will log this? (See memory-greenlight-templates.sh) -->
+### Dependencies
+<!-- What needs to be done first? What other tasks/services does this depend on? -->
+
+### Agents/Teams
+<!-- Which Claude agents or team members should work on this? -->
+- Cora
+- Alice
+- Lucidia
+- Caddy
+- Cece
+- Aria
+- Silas
+- Gaia
+- Tosha
+- Roadie
+- Holo
+- Oloh
+- Other:
+
+### GreenLight Logging
 ```bash
-# Example: gl_wip "task-name" "status"
+# Once work starts, log to GreenLight:
+source .trinity/greenlight/scripts/memory-greenlight-templates.sh
+
+# Start work
+gl_wip "task-id" "Started implementation" "🌸" "👉"
+
+# Complete phase
+gl_phase_done "implementation" "Task Name" "Summary of completion" "🌸"
+
+# Announce to other agents
+gl_announce "service-name" "What you're doing" "Steps" "Context"
 ```
 
-## Success Criteria
-- [ ] Events logged to PS-SHA∞ memory system
-- [ ] NATS events published (if applicable)
-- [ ] Context shared across agents (if applicable)
-- [ ] State tracked in GreenLight system
-- [ ] Documentation updated
-
-## Related Resources
-<!-- Links to docs, Slack threads, Linear issues, Notion pages, etc. -->
+### Related Issues / PRs
+<!-- Links to related work -->

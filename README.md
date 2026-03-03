@@ -31,6 +31,7 @@ This repository includes the **Light Trinity System** - a unified intelligence, 
 
 ## Service Matrix
 | Service | Env | Repo | URL | Health | Depends |
+| Service | Env | Repo | URL | Health | Depends |
 | --- | --- | --- | --- | --- | --- |
 | core-web | prod | core | https://web.blackroad.io | /api/health | gateway, operator |
 
