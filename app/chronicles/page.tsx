@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ChronicleCard } from "../../components/ChronicleCard";
 import type { ChronicleEpisode } from "../../src/types/chronicles";
 
@@ -10,28 +11,7 @@ interface ChroniclesResponse {
 }
 
 export default function ChroniclesPage() {
-  const [episodes, setEpisodes] = useState<ChronicleEpisode[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function fetchEpisodes() {
-      try {
-        const response = await fetch("/api/chronicles");
-        if (!response.ok) {
-          throw new Error("Failed to fetch episodes");
-        }
-        const data: ChroniclesResponse = await response.json();
-        setEpisodes(data.episodes);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchEpisodes();
-  }, []);
+  const router = useRouter();
 
   const handlePlay = (episodeId: string) => {
     console.log("Playing episode:", episodeId);
@@ -41,7 +21,7 @@ export default function ChroniclesPage() {
   const handleViewTranscript = (episodeId: string) => {
     console.log("Viewing transcript:", episodeId);
     // In production: navigate to episode detail page
-    window.location.href = `/chronicles/${episodeId}`;
+    router.push(`/chronicles/${episodeId}`);
   };
 
   let content;
@@ -91,10 +71,10 @@ export default function ChroniclesPage() {
           <span>{"// "}</span>BlackRoad OS
         </h1>
         <nav className="nav-links">
-          <a href="/">Dashboard</a>
-          <a href="/chronicles" className="active">Chronicles</a>
-          <a href="/agents">Agents</a>
-          <a href="/api/health">Health</a>
+          <Link href="/">Dashboard</Link>
+          <Link href="/chronicles" className="active">Chronicles</Link>
+          <Link href="/agents">Agents</Link>
+          <Link href="/api/health">Health</Link>
         </nav>
       </header>
       <main className="container">{content}</main>
