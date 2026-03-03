@@ -3,18 +3,19 @@ using UnityEngine;
 namespace BlackRoad.Worldbuilder.Building
 {
     /// <summary>
-    /// Categories for block types to organize the block database
+    /// Broad grouping used by <see cref="BlockDatabase"/> and the
+    /// <see cref="BlackRoad.Worldbuilder.UI.BlockSelectionBar"/> hotbar.
     /// </summary>
     public enum BlockCategory
     {
         Terrain,
         Structure,
-        Decorative
+        Decorative,
     }
 
     /// <summary>
-    /// ScriptableObject defining a block type with its properties.
-    /// Includes category, hardness (break time), prefab, and icon for UI.
+    /// ScriptableObject that describes a single placeable block type.
+    /// Create via <c>BlackRoad/Worldbuilder/BlockType</c> in the Project menu.
     /// </summary>
     [CreateAssetMenu(
         fileName = "BlockType",
@@ -26,13 +27,8 @@ namespace BlackRoad.Worldbuilder.Building
         [Header("Identity")]
         public string blockId = "block.dirt";
         public string displayName = "Dirt";
-        
-        [Header("Category")]
-        [Tooltip("Category for organizing blocks in UI")]
-        public BlockCategory category = BlockCategory.Terrain;
-        
-        [Header("Prefab")]
-        [Tooltip("The 3D prefab to instantiate when placing this block")]
+
+        [Header("Visuals")]
         public GameObject prefab;
         
         [Header("Properties")]
@@ -47,12 +43,17 @@ namespace BlackRoad.Worldbuilder.Building
         [Header("Debug")]
         [Tooltip("Color for grid gizmos")]
         public Color gizmoColor = Color.gray;
-        
-        [Header("Properties")]
+
+        [Header("Classification")]
         public BlockCategory category = BlockCategory.Terrain;
+
+        [Header("Gameplay")]
+        [Tooltip("Relative hardness (1 = default). Higher values take longer to break.")]
+        [Min(0.1f)]
         public float hardness = 1f;
-        
-        [Header("UI")]
-        public Sprite icon;
+
+        [Tooltip("Time in seconds for a player to break this block.")]
+        [Min(0f)]
+        public float breakTime = 0.5f;
     }
 }

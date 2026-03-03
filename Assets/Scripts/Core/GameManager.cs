@@ -3,8 +3,9 @@ using UnityEngine;
 namespace BlackRoad.Worldbuilder.Core
 {
     /// <summary>
-    /// Singleton manager handling game state transitions, pause/resume, and input.
-    /// Press ESC to toggle pause, manages Time.timeScale and cursor lock state.
+    /// Central singleton that owns the <see cref="GameState"/> machine.
+    /// Wires pause (Escape) and save/load shortcut feedback.
+    /// Attach to a persistent GameObject in the first scene.
     /// </summary>
     public class GameManager : MonoBehaviour
     {
@@ -21,17 +22,15 @@ namespace BlackRoad.Worldbuilder.Core
         [Header("Settings")]
         public bool showGridGizmos = true;
 
-        [Header("UI References")]
-        [SerializeField] private UI.PauseMenuUI pauseMenuUI;
-        [SerializeField] private UI.MainMenuUI mainMenuUI;
+        [Header("Pause UI")]
+        [SerializeField] private GameObject pauseMenuRoot;
 
-        [Header("State")]
-        [SerializeField] private GameState currentState = GameState.Playing;
+        // ── State ────────────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Current game state
-        /// </summary>
-        public GameState CurrentState => currentState;
+        /// <summary>Current high-level state of the game.</summary>
+        public GameState CurrentState { get; private set; } = GameState.Playing;
+
+        // ── Unity lifecycle ──────────────────────────────────────────────────
 
         private void Awake()
         {
@@ -47,110 +46,76 @@ namespace BlackRoad.Worldbuilder.Core
 
         private void Start()
         {
-            // Initialize based on starting state
-            SetState(currentState);
+            SetState(GameState.Playing);
         }
 
         private void Update()
         {
-            // ESC key toggles pause when playing
             if (UnityEngine.Input.GetKeyDown(KeyCode.Escape))
             {
-                if (currentState == GameState.Playing)
-                {
-                    Pause();
-                }
-                else if (currentState == GameState.Paused)
-                {
-                    Resume();
-                }
+                TogglePause();
             }
         }
 
+        // ── State management ─────────────────────────────────────────────────
+
         /// <summary>
-        /// Set the current game state and handle transitions
+        /// Transitions the game to <paramref name="newState"/>,
+        /// applying the appropriate side-effects (time scale, cursor, UI).
         /// </summary>
         public void SetState(GameState newState)
         {
-            if (currentState == newState)
-                return;
+            CurrentState = newState;
 
-            currentState = newState;
-
-            switch (currentState)
+            switch (newState)
             {
-                case GameState.MainMenu:
-                    Time.timeScale = 0f;
-                    Cursor.lockState = CursorLockMode.None;
-                    Cursor.visible = true;
-                    DisableGameplayControls();
-                    if (mainMenuUI != null) mainMenuUI.Show();
-                    if (pauseMenuUI != null) pauseMenuUI.Hide();
-                    break;
-
                 case GameState.Playing:
                     Time.timeScale = 1f;
+                    SetInputEnabled(true);
+                    SetPauseMenuVisible(false);
                     Cursor.lockState = CursorLockMode.Locked;
                     Cursor.visible = false;
-                    EnableGameplayControls();
-                    if (mainMenuUI != null) mainMenuUI.Hide();
-                    if (pauseMenuUI != null) pauseMenuUI.Hide();
                     break;
 
                 case GameState.Paused:
                     Time.timeScale = 0f;
+                    SetInputEnabled(false);
+                    SetPauseMenuVisible(true);
                     Cursor.lockState = CursorLockMode.None;
                     Cursor.visible = true;
-                    DisableGameplayControls();
-                    if (pauseMenuUI != null) pauseMenuUI.Show();
+                    break;
+
+                case GameState.MainMenu:
+                    Time.timeScale = 1f;
+                    SetInputEnabled(false);
+                    SetPauseMenuVisible(false);
+                    Cursor.lockState = CursorLockMode.None;
+                    Cursor.visible = true;
                     break;
             }
         }
 
-        /// <summary>
-        /// Pause the game (switch to Paused state)
-        /// </summary>
-        public void Pause()
+        /// <summary>Toggles between <see cref="GameState.Playing"/> and <see cref="GameState.Paused"/>.</summary>
+        public void TogglePause()
         {
-            SetState(GameState.Paused);
+            SetState(CurrentState == GameState.Paused ? GameState.Playing : GameState.Paused);
         }
 
-        /// <summary>
-        /// Resume the game (switch to Playing state)
-        /// </summary>
-        public void Resume()
+        // ── Helpers ───────────────────────────────────────────────────────────
+
+        private void SetInputEnabled(bool enabled)
         {
-            SetState(GameState.Playing);
+            if (flyCamera != null)
+                flyCamera.enabled = enabled;
+
+            if (blockPlacer != null)
+                blockPlacer.enabled = enabled;
         }
 
-        /// <summary>
-        /// Return to main menu
-        /// </summary>
-        public void ReturnToMainMenu()
+        private void SetPauseMenuVisible(bool visible)
         {
-            SetState(GameState.MainMenu);
-        }
-
-        /// <summary>
-        /// Start new game from main menu
-        /// </summary>
-        public void StartNewGame()
-        {
-            SetState(GameState.Playing);
-        }
-
-        private void EnableGameplayControls()
-        {
-            if (flyCamera != null) flyCamera.enabled = true;
-            if (playerController != null) playerController.enabled = true;
-            if (blockPlacer != null) blockPlacer.enabled = true;
-        }
-
-        private void DisableGameplayControls()
-        {
-            if (flyCamera != null) flyCamera.enabled = false;
-            if (playerController != null) playerController.enabled = false;
-            if (blockPlacer != null) blockPlacer.enabled = false;
+            if (pauseMenuRoot != null)
+                pauseMenuRoot.SetActive(visible);
         }
     }
 }
