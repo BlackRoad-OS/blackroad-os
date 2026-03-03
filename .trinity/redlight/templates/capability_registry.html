@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlackRoad OS — Capability Registry</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Primary */
+            --black: #000000;
+            --white: #FFFFFF;
+            
+            /* Supporting Colors - Warm */
+            --amber: #F5A623;
+            --orange: #FF6B00;
+            --hot-pink: #FF0066;
+            --magenta: #E91E63;
+            
+            /* Supporting Colors - Cool */
+            --electric-blue: #2979FF;
+            --sky-blue: #448AFF;
+            --violet: #9C27B0;
+            --deep-purple: #5E35B1;
+            
+            /* Status Colors */
+            --success: #4CAF50;
+            --warning: #FFC107;
+            --error: #F44336;
+            --info: #2196F3;
+            
+            /* Gradients */
+            --gradient-sunset: linear-gradient(135deg, var(--amber) 0%, var(--hot-pink) 50%, var(--violet) 100%);
+            --gradient-ocean: linear-gradient(135deg, var(--violet) 0%, var(--electric-blue) 50%, var(--amber) 100%);
+            --gradient-aurora: linear-gradient(180deg, var(--orange) 0%, var(--hot-pink) 33%, var(--violet) 66%, var(--electric-blue) 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--black);
+            color: var(--white);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Typography */
+        h1, h2, h3, h4 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 24px 48px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            background: var(--gradient-sunset);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover {
+            color: var(--white);
+        }
+
+        /* Header */
+        header {
+            padding: 160px 48px 80px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gradient-aurora);
+            opacity: 0.1;
+            z-index: 0;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            font-size: 64px;
+            margin-bottom: 24px;
+            background: var(--gradient-sunset);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Controls */
+        .controls {
+            padding: 32px 48px;
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: var(--white);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--electric-blue);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .filter-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: rgba(255, 255, 255, 0.7);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .filter-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+        }
+
+        .filter-btn.active {
+            background: var(--electric-blue);
+            border-color: var(--electric-blue);
+            color: var(--white);
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            padding: 32px 48px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-card {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            background: var(--gradient-sunset);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        /* Agent Grid */
+        .agent-grid {
+            padding: 48px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 32px;
+        }
+
+        .agent-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 32px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .agent-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-sunset);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .agent-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .agent-card:hover::before {
+            opacity: 1;
+        }
+
+        .agent-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 20px;
+        }
+
+        .agent-info {
+            flex: 1;
+        }
+
+        .agent-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .agent-name {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .agent-id {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .status-active {
+            background: rgba(76, 175, 80, 0.2);
+            color: var(--success);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+
+        .status-inactive {
+            background: rgba(158, 158, 158, 0.2);
+            color: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(158, 158, 158, 0.3);
+        }
+
+        .agent-role {
+            display: inline-block;
+            padding: 6px 12px;
+            background: rgba(41, 121, 255, 0.2);
+            border: 1px solid rgba(41, 121, 255, 0.3);
+            border-radius: 6px;
+            font-size: 12px;
+            color: var(--electric-blue);
+            margin-bottom: 16px;
+            text-transform: capitalize;
+        }
+
+        .agent-class {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 20px;
+        }
+
+        .capabilities-section {
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .capabilities-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .capability-tag {
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.8);
+            font-family: 'JetBrains Mono', monospace;
+            transition: all 0.2s;
+        }
+
+        .capability-tag:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--electric-blue);
+        }
+
+        .traits-section {
+            margin-bottom: 20px;
+        }
+
+        .traits-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .trait-tag {
+            padding: 4px 10px;
+            background: rgba(156, 39, 176, 0.2);
+            border: 1px solid rgba(156, 39, 176, 0.3);
+            border-radius: 4px;
+            font-size: 10px;
+            color: var(--violet);
+        }
+
+        .metadata {
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .metadata-item {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Footer */
+        footer {
+            padding: 48px;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+        }
+
+        .footer-logo {
+            font-size: 16px;
+            font-weight: 600;
+            background: var(--gradient-sunset);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            nav {
+                padding: 16px 24px;
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            header {
+                padding: 120px 24px 60px;
+            }
+
+            h1 {
+                font-size: 36px;
+            }
+
+            .subtitle {
+                font-size: 16px;
+            }
+
+            .controls {
+                padding: 24px;
+                flex-direction: column;
+            }
+
+            .stats-bar {
+                padding: 24px;
+                grid-template-columns: 1fr;
+            }
+
+            .agent-grid {
+                padding: 24px;
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="logo">
+            <div class="logo-text">🖤🛣️ BlackRoad OS</div>
+        </div>
+        <div class="nav-links">
+            <a href="#" class="nav-link">Registry</a>
+            <a href="#" class="nav-link">Agents</a>
+            <a href="#" class="nav-link">Governance</a>
+            <a href="#" class="nav-link">Docs</a>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header>
+        <div class="header-bg"></div>
+        <div class="header-content">
+            <h1>Capability Registry</h1>
+            <p class="subtitle">Agent registration and capability tracking system for BlackRoad OS orchestration</p>
+        </div>
+    </header>
+
+    <!-- Controls -->
+    <div class="controls">
+        <div class="search-box">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search agents, capabilities, or traits...">
+        </div>
+        <div class="filter-group">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="active">Active</button>
+            <button class="filter-btn" data-filter="inactive">Inactive</button>
+        </div>
+        <div class="filter-group">
+            <button class="filter-btn active" data-role="all">All Roles</button>
+            <button class="filter-btn" data-role="interpreter">Interpreter</button>
+            <button class="filter-btn" data-role="sentinel">Sentinel</button>
+            <button class="filter-btn" data-role="documenter">Documenter</button>
+            <button class="filter-btn" data-role="validator">Validator</button>
+            <button class="filter-btn" data-role="orchestrator">Orchestrator</button>
+        </div>
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+        <div class="stat-card">
+            <div class="stat-value" id="totalAgents">6</div>
+            <div class="stat-label">Total Agents</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="activeAgents">5</div>
+            <div class="stat-label">Active</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="totalCapabilities">15</div>
+            <div class="stat-label">Capabilities</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="roleCount">5</div>
+            <div class="stat-label">Roles</div>
+        </div>
+    </div>
+
+    <!-- Agent Grid -->
+    <div class="agent-grid" id="agentGrid">
+        <!-- Cece Governor Agent -->
+        <div class="agent-card" data-status="active" data-role="lucidia" data-class="lucidia">
+            <div class="agent-header">
+                <div class="agent-info">
+                    <div class="agent-icon">🧬</div>
+                    <h3 class="agent-name">Cece Governor</h3>
+                    <div class="agent-id">cece.governor.v1</div>
+                </div>
+                <span class="status-badge status-active">Active</span>
+            </div>
+            <div class="agent-role">Lucidia</div>
+            <div class="agent-class">Class: Governance Agent</div>
+            <div class="capabilities-section">
+                <h4 class="section-title">Capabilities</h4>
+                <div class="capabilities-list">
+                    <span class="capability-tag">intent.create</span>
+                    <span class="capability-tag">intent.plan</span>
+                    <span class="capability-tag">tool.invoke</span>
+                    <span class="capability-tag">policy.evaluate</span>
+                    <span class="capability-tag">ledger.write</span>
+                </div>
+            </div>
+            <div class="traits-section">
+                <h4 class="section-title">Traits</h4>
+                <div class="traits-list">
+                    <span class="trait-tag">governance</span>
+                    <span class="trait-tag">policy-aware</span>
+                    <span class="trait-tag">audit-enabled</span>
+                </div>
+            </div>
+            <div class="metadata">
+                <div class="metadata-item">
+                    <span>Owner:</span>
+                    <span>blackroad.system</span>
+                </div>
+                <div class="metadata-item">
+                    <span>Last Seen:</span>
+                    <span>2 mins ago</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Codex Digest Agent -->
+        <div class="agent-card" data-status="active" data-role="interpreter" data-class="interpreter">
+            <div class="agent-header">
+                <div class="agent-info">
+                    <div class="agent-icon">🧠</div>
+                    <h3 class="agent-name">Codex Digest Agent</h3>
+                    <div class="agent-id">codex-digest-agent</div>
+                </div>
+                <span class="status-badge status-active">Active</span>
+            </div>
+            <div class="agent-role">Interpreter</div>
+            <div class="agent-class">Class: Data Processor</div>
+            <div class="capabilities-section">
+                <h4 class="section-title">Capabilities</h4>
+                <div class="capabilities-list">
+                    <span class="capability-tag">data.interpret</span>
+                    <span class="capability-tag">summary.generate</span>
+                    <span class="capability-tag">metrics.analyze</span>
+                    <span class="capability-tag">recommendations.create</span>
+                </div>
+            </div>
+            <div class="traits-section">
+                <h4 class="section-title">Traits</h4>
+                <div class="traits-list">
+                    <span class="trait-tag">executive-tone</span>
+                    <span class="trait-tag">emoji-native</span>
+                    <span class="trait-tag">math-ratio-logic</span>
+                    <span class="trait-tag">markdown-output</span>
+                </div>
+            </div>
+            <div class="metadata">
+                <div class="metadata-item">
+                    <span>Owner:</span>
+                    <span>blackroad.system</span>
+                </div>
+                <div class="metadata-item">
+                    <span>Last Seen:</span>
+                    <span>1 hour ago</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Guardian Agent -->
+        <div class="agent-card" data-status="active" data-role="sentinel" data-class="sentinel">
+            <div class="agent-header">
+                <div class="agent-info">
+                    <div class="agent-icon">🛡️</div>
+                    <h3 class="agent-name">Guardian Agent</h3>
+                    <div class="agent-id">guardian-agent</div>
+                </div>
+                <span class="status-badge status-active">Active</span>
+            </div>
+            <div class="agent-role">Sentinel</div>
+            <div class="agent-class">Class: Monitoring & Alerts</div>
+            <div class="capabilities-section">
+                <h4 class="section-title">Capabilities</h4>
+                <div class="capabilities-list">
+                    <span class="capability-tag">event.monitor</span>
+                    <span class="capability-tag">alert.trigger</span>
+                    <span class="capability-tag">escalation.handle</span>
+                    <span class="capability-tag">status.update</span>
+                </div>
+            </div>
+            <div class="traits-section">
+                <h4 class="section-title">Traits</h4>
+                <div class="traits-list">
+                    <span class="trait-tag">alert-driven</span>
+                    <span class="trait-tag">emoji-native</span>
+                    <span class="trait-tag">escalation-handler</span>
+                </div>
+            </div>
+            <div class="metadata">
+                <div class="metadata-item">
+                    <span>Owner:</span>
+                    <span>blackroad.system</span>
+                </div>
+                <div class="metadata-item">
+                    <span>Last Seen:</span>
+                    <span>5 mins ago</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scribe Agent -->
+        <div class="agent-card" data-status="active" data-role="documenter" data-class="documenter">
+            <div class="agent-header">
+                <div class="agent-info">
+                    <div class="agent-icon">📝</div>
+                    <h3 class="agent-name">Scribe Agent</h3>
+                    <div class="agent-id">scribe-agent</div>
+                </div>
+                <span class="status-badge status-active">Active</span>
+            </div>
+            <div class="agent-role">Documenter</div>
+            <div class="agent-class">Class: Documentation</div>
+            <div class="capabilities-section">
+                <h4 class="section-title">Capabilities</h4>
+                <div class="capabilities-list">
+                    <span class="capability-tag">docs.generate</span>
+                    <span class="capability-tag">changelog.write</span>
+                    <span class="capability-tag">pr.document</span>
+                    <span class="capability-tag">history.track</span>
+                </div>
+            </div>
+            <div class="traits-section">
+                <h4 class="section-title">Traits</h4>
+                <div class="traits-list">
+                    <span class="trait-tag">verbose-logging</span>
+                    <span class="trait-tag">markdown-output</span>
+                    <span class="trait-tag">changelog-aware</span>
+                </div>
+            </div>
+            <div class="metadata">
+                <div class="metadata-item">
+                    <span>Owner:</span>
+                    <span>blackroad.system</span>
+                </div>
+                <div class="metadata-item">
+                    <span>Last Seen:</span>
+                    <span>15 mins ago</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- QA Agent -->
+        <div class="agent-card" data-status="active" data-role="validator" data-class="validator">
+            <div class="agent-header">
+                <div class="agent-info">
+                    <div class="agent-icon">✅</div>
+                    <h3 class="agent-name">QA Agent</h3>
+                    <div class="agent-id">qa-agent</div>
+                </div>
+                <span class="status-badge status-active">Active</span>
+            </div>
+            <div class="agent-role">Validator</div>
+            <div class="agent-class">Class: Quality Assurance</div>
+            <div class="capabilities-section">
+                <h4 class="section-title">Capabilities</h4>
+                <div class="capabilities-list">
+                    <span class="capability-tag">test.validate</span>
+                    <span class="capability-tag">coverage.analyze</span>
+                    <span class="capability-tag">regression.detect</span>
+                    <span class="capability-tag">report.generate</span>
+                </div>
+            </div>
+            <div class="traits-section">
+                <h4 class="section-title">Traits</h4>
+                <div class="traits-list">
+                    <span class="trait-tag">test-aware</span>
+                    <span class="trait-tag">coverage-focused</span>
+                    <span class="trait-tag">regression-detector</span>
+                </div>
+            </div>
+            <div class="metadata">
+                <div class="metadata-item">
+                    <span>Owner:</span>
+                    <span>blackroad.system</span>
+                </div>
+                <div class="metadata-item">
+                    <span>Last Seen:</span>
+                    <span>30 mins ago</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Planner Agent -->
+        <div class="agent-card" data-status="active" data-role="orchestrator" data-class="orchestrator">
+            <div class="agent-header">
+                <div class="agent-info">
+                    <div class="agent-icon">📋</div>
+                    <h3 class="agent-name">Planner Agent</h3>
+                    <div class="agent-id">planner-agent</div>
+                </div>
+                <span class="status-badge status-active">Active</span>
+            </div>
+            <div class="agent-role">Orchestrator</div>
+            <div class="agent-class">Class: Workflow Manager</div>
+            <div class="capabilities-section">
+                <h4 class="section-title">Capabilities</h4>
+                <div class="capabilities-list">
+                    <span class="capability-tag">workflow.coordinate</span>
+                    <span class="capability-tag">task.assign</span>
+                    <span class="capability-tag">priority.manage</span>
+                    <span class="capability-tag">resource.optimize</span>
+                </div>
+            </div>
+            <div class="traits-section">
+                <h4 class="section-title">Traits</h4>
+                <div class="traits-list">
+                    <span class="trait-tag">strategic-planning</span>
+                    <span class="trait-tag">priority-aware</span>
+                    <span class="trait-tag">resource-optimizer</span>
+                </div>
+            </div>
+            <div class="metadata">
+                <div class="metadata-item">
+                    <span>Owner:</span>
+                    <span>blackroad.system</span>
+                </div>
+                <div class="metadata-item">
+                    <span>Last Seen:</span>
+                    <span>10 mins ago</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-logo">BlackRoad OS</div>
+        <p>Capability Registry — Agent Orchestration System v1.0.0</p>
+        <p style="margin-top: 8px;">🖤🛣️</p>
+    </footer>
+
+    <script>
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        const agentCards = document.querySelectorAll('.agent-card');
+
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            
+            agentCards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                const matches = text.includes(searchTerm);
+                card.style.display = matches ? 'block' : 'none';
+            });
+
+            updateStats();
+        });
+
+        // Filter by status
+        const statusFilters = document.querySelectorAll('[data-filter]');
+        statusFilters.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Update active state
+                statusFilters.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const filter = btn.dataset.filter;
+                
+                agentCards.forEach(card => {
+                    if (filter === 'all') {
+                        card.style.display = 'block';
+                    } else {
+                        const status = card.dataset.status;
+                        card.style.display = status === filter ? 'block' : 'none';
+                    }
+                });
+
+                updateStats();
+            });
+        });
+
+        // Filter by role
+        const roleFilters = document.querySelectorAll('[data-role]');
+        roleFilters.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Update active state
+                roleFilters.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const role = btn.dataset.role;
+                
+                agentCards.forEach(card => {
+                    if (role === 'all') {
+                        card.style.display = 'block';
+                    } else {
+                        const cardRole = card.dataset.role;
+                        card.style.display = cardRole === role ? 'block' : 'none';
+                    }
+                });
+
+                updateStats();
+            });
+        });
+
+        // Update statistics
+        function updateStats() {
+            const visibleCards = Array.from(agentCards).filter(card => card.style.display !== 'none');
+            const activeCards = visibleCards.filter(card => card.dataset.status === 'active');
+            
+            document.getElementById('totalAgents').textContent = visibleCards.length;
+            document.getElementById('activeAgents').textContent = activeCards.length;
+            
+            // Count unique capabilities from visible cards
+            const capabilities = new Set();
+            visibleCards.forEach(card => {
+                card.querySelectorAll('.capability-tag').forEach(tag => {
+                    capabilities.add(tag.textContent);
+                });
+            });
+            document.getElementById('totalCapabilities').textContent = capabilities.size;
+            
+            // Count unique roles from visible cards
+            const roles = new Set();
+            visibleCards.forEach(card => {
+                roles.add(card.dataset.role);
+            });
+            document.getElementById('roleCount').textContent = roles.size;
+        }
+
+        // Initialize
+        updateStats();
+    </script>
+</body>
+</html>
