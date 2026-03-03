@@ -1,0 +1,913 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BlackRoad Settings</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --gray-950: #0a0a0a;
+        --gray-900: #111111;
+        --gray-850: #1a1a1a;
+        --gray-800: #222222;
+        --gray-700: #333333;
+        --gray-600: #444444;
+        --gray-500: #666666;
+        --gray-400: #888888;
+        --gray-300: #aaaaaa;
+        --gray-200: #cccccc;
+        --gray-100: #e5e5e5;
+        --gray-50: #f5f5f5;
+        --white: #ffffff;
+      }
+
+      body {
+        font-family:
+          'Inter',
+          -apple-system,
+          BlinkMacSystemFont,
+          sans-serif;
+        background: var(--gray-950);
+        color: var(--gray-100);
+        min-height: 100vh;
+        display: flex;
+      }
+
+      /* Sidebar Navigation */
+      .settings-nav {
+        width: 240px;
+        background: var(--gray-900);
+        border-right: 1px solid var(--gray-800);
+        padding: 24px 0;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .nav-header {
+        padding: 0 20px 24px;
+        border-bottom: 1px solid var(--gray-800);
+        margin-bottom: 16px;
+      }
+
+      .nav-title {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--gray-100);
+        letter-spacing: -0.01em;
+      }
+
+      .nav-subtitle {
+        font-family: 'Inter', sans-serif;
+        font-size: 13px;
+        color: var(--gray-500);
+        margin-top: 4px;
+      }
+
+      .nav-section {
+        padding: 8px 12px;
+      }
+
+      .nav-section-label {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        font-weight: 500;
+        color: var(--gray-500);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 0 8px 8px;
+      }
+
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        margin-bottom: 2px;
+      }
+
+      .nav-item:hover {
+        background: var(--gray-850);
+      }
+
+      .nav-item.active {
+        background: var(--gray-800);
+      }
+
+      .nav-item svg {
+        width: 18px;
+        height: 18px;
+        color: var(--gray-500);
+        flex-shrink: 0;
+      }
+
+      .nav-item.active svg {
+        color: var(--gray-300);
+      }
+
+      .nav-item-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--gray-400);
+      }
+
+      .nav-item.active .nav-item-label {
+        color: var(--gray-100);
+      }
+
+      .nav-badge {
+        margin-left: auto;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        font-weight: 500;
+        color: var(--gray-400);
+        background: var(--gray-800);
+        border-radius: 4px;
+        padding: 2px 6px;
+      }
+
+      .nav-spacer {
+        flex: 1;
+      }
+
+      .nav-footer {
+        padding: 16px 20px;
+        border-top: 1px solid var(--gray-800);
+      }
+
+      .nav-version {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px;
+        color: var(--gray-600);
+      }
+
+      /* Main Content */
+      .settings-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 32px 48px;
+        max-width: 720px;
+      }
+
+      .content-header {
+        margin-bottom: 32px;
+      }
+
+      .content-title {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--gray-100);
+        letter-spacing: -0.02em;
+      }
+
+      .content-description {
+        font-size: 14px;
+        color: var(--gray-500);
+        margin-top: 8px;
+        line-height: 1.5;
+      }
+
+      /* Settings Sections */
+      .settings-section {
+        margin-bottom: 40px;
+      }
+
+      .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--gray-850);
+      }
+
+      .section-title {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--gray-300);
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+
+      .section-action {
+        font-family: 'Inter', sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--gray-400);
+        cursor: pointer;
+        transition: color 0.15s ease;
+      }
+
+      .section-action:hover {
+        color: var(--gray-200);
+      }
+
+      /* Setting Row */
+      .setting-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--gray-850);
+      }
+
+      .setting-row:last-child {
+        border-bottom: none;
+      }
+
+      .setting-info {
+        flex: 1;
+        padding-right: 24px;
+      }
+
+      .setting-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--gray-100);
+        margin-bottom: 4px;
+      }
+
+      .setting-description {
+        font-size: 13px;
+        color: var(--gray-500);
+        line-height: 1.5;
+      }
+
+      .setting-control {
+        flex-shrink: 0;
+      }
+
+      /* Toggle Switch */
+      .toggle {
+        width: 44px;
+        height: 24px;
+        background: var(--gray-700);
+        border-radius: 12px;
+        position: relative;
+        cursor: pointer;
+        transition: background 0.2s ease;
+      }
+
+      .toggle.active {
+        background: var(--gray-400);
+      }
+
+      .toggle::after {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 20px;
+        height: 20px;
+        background: var(--gray-200);
+        border-radius: 50%;
+        transition: transform 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      }
+
+      .toggle.active::after {
+        transform: translateX(20px);
+        background: var(--white);
+      }
+
+      /* Select Dropdown */
+      .select-wrapper {
+        position: relative;
+      }
+
+      .select {
+        appearance: none;
+        background: var(--gray-850);
+        border: 1px solid var(--gray-700);
+        border-radius: 6px;
+        padding: 8px 36px 8px 12px;
+        font-family: 'Inter', sans-serif;
+        font-size: 14px;
+        color: var(--gray-100);
+        cursor: pointer;
+        min-width: 160px;
+        transition: border-color 0.15s ease;
+      }
+
+      .select:hover {
+        border-color: var(--gray-600);
+      }
+
+      .select:focus {
+        outline: none;
+        border-color: var(--gray-500);
+      }
+
+      .select-arrow {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 16px;
+        height: 16px;
+        color: var(--gray-500);
+        pointer-events: none;
+      }
+
+      /* Text Input */
+      .input {
+        background: var(--gray-850);
+        border: 1px solid var(--gray-700);
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-family: 'Inter', sans-serif;
+        font-size: 14px;
+        color: var(--gray-100);
+        width: 200px;
+        transition: border-color 0.15s ease;
+      }
+
+      .input:hover {
+        border-color: var(--gray-600);
+      }
+
+      .input:focus {
+        outline: none;
+        border-color: var(--gray-500);
+      }
+
+      .input::placeholder {
+        color: var(--gray-600);
+      }
+
+      .input.mono {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 13px;
+      }
+
+      /* Button Group */
+      .btn-group {
+        display: flex;
+        gap: 2px;
+        background: var(--gray-850);
+        border-radius: 6px;
+        padding: 2px;
+      }
+
+      .btn-group-item {
+        font-family: 'Inter', sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--gray-500);
+        background: transparent;
+        border: none;
+        border-radius: 4px;
+        padding: 6px 14px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .btn-group-item:hover {
+        color: var(--gray-300);
+      }
+
+      .btn-group-item.active {
+        background: var(--gray-700);
+        color: var(--gray-100);
+      }
+
+      /* Slider */
+      .slider-container {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .slider {
+        appearance: none;
+        width: 120px;
+        height: 4px;
+        background: var(--gray-700);
+        border-radius: 2px;
+        cursor: pointer;
+      }
+
+      .slider::-webkit-slider-thumb {
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        background: var(--gray-200);
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      }
+
+      .slider-value {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        color: var(--gray-400);
+        min-width: 32px;
+      }
+
+      /* Info Box */
+      .info-box {
+        background: var(--gray-850);
+        border: 1px solid var(--gray-800);
+        border-radius: 8px;
+        padding: 16px;
+        margin-top: 16px;
+      }
+
+      .info-box-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .info-box-icon {
+        width: 16px;
+        height: 16px;
+        color: var(--gray-500);
+      }
+
+      .info-box-title {
+        font-family: 'Inter', sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--gray-300);
+      }
+
+      .info-box-text {
+        font-size: 13px;
+        color: var(--gray-500);
+        line-height: 1.5;
+      }
+
+      .info-box-code {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        color: var(--gray-400);
+        background: var(--gray-800);
+        border-radius: 4px;
+        padding: 2px 6px;
+      }
+
+      /* Danger Zone */
+      .danger-section {
+        border: 1px solid var(--gray-800);
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 24px;
+      }
+
+      .danger-section .section-title {
+        color: var(--gray-400);
+      }
+
+      .danger-btn {
+        font-family: 'Inter', sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--gray-300);
+        background: var(--gray-800);
+        border: 1px solid var(--gray-700);
+        border-radius: 6px;
+        padding: 8px 16px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .danger-btn:hover {
+        background: var(--gray-700);
+        border-color: var(--gray-600);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Sidebar Navigation -->
+    <nav class="settings-nav">
+      <div class="nav-header">
+        <div class="nav-title">Settings</div>
+        <div class="nav-subtitle">BlackRoad OS</div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-label">General</div>
+        <div class="nav-item active">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="3"></circle>
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
+            ></path>
+          </svg>
+          <span class="nav-item-label">Preferences</span>
+        </div>
+        <div class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect>
+            <line x1="3" x2="21" y1="9" y2="9"></line>
+            <line x1="9" x2="9" y1="21" y2="9"></line>
+          </svg>
+          <span class="nav-item-label">Appearance</span>
+        </div>
+        <div class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect width="20" height="14" x="2" y="3" rx="2"></rect>
+            <line x1="8" x2="16" y1="21" y2="21"></line>
+            <line x1="12" x2="12" y1="17" y2="21"></line>
+          </svg>
+          <span class="nav-item-label">Display</span>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-label">Agents</div>
+        <div class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span class="nav-item-label">Agent Registry</span>
+          <span class="nav-badge">1,000</span>
+        </div>
+        <div class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+          </svg>
+          <span class="nav-item-label">Memory</span>
+        </div>
+        <div class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          </svg>
+          <span class="nav-item-label">Telemetry</span>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-label">Infrastructure</div>
+        <div class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+            <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+            <line x1="6" y1="6" x2="6.01" y2="6"></line>
+            <line x1="6" y1="18" x2="6.01" y2="18"></line>
+          </svg>
+          <span class="nav-item-label">Cluster</span>
+        </div>
+        <div class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
+            ></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          <span class="nav-item-label">Network</span>
+        </div>
+        <div class="nav-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          <span class="nav-item-label">Security</span>
+        </div>
+      </div>
+
+      <div class="nav-spacer"></div>
+
+      <div class="nav-footer">
+        <div class="nav-version">v0.1.0-alpha</div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="settings-content">
+      <div class="content-header">
+        <h1 class="content-title">Preferences</h1>
+        <p class="content-description">
+          Configure general settings for BlackRoad OS. Changes are saved automatically.
+        </p>
+      </div>
+
+      <!-- Interface Section -->
+      <section class="settings-section">
+        <div class="section-header">
+          <h2 class="section-title">Interface</h2>
+          <span class="section-action">Reset to defaults</span>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Theme</div>
+            <div class="setting-description">Select the visual theme for the interface.</div>
+          </div>
+          <div class="setting-control">
+            <div class="btn-group">
+              <button class="btn-group-item active">Dark</button>
+              <button class="btn-group-item">Light</button>
+              <button class="btn-group-item">System</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Sidebar position</div>
+            <div class="setting-description">Choose which side the navigation appears on.</div>
+          </div>
+          <div class="setting-control">
+            <div class="select-wrapper">
+              <select class="select">
+                <option>Left</option>
+                <option>Right</option>
+              </select>
+              <svg
+                class="select-arrow"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">UI scale</div>
+            <div class="setting-description">Adjust the overall interface scaling.</div>
+          </div>
+          <div class="setting-control">
+            <div class="slider-container">
+              <input type="range" class="slider" min="80" max="120" value="100" />
+              <span class="slider-value">100%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Animations</div>
+            <div class="setting-description">Enable smooth transitions and micro-interactions.</div>
+          </div>
+          <div class="setting-control">
+            <div class="toggle active"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Agent Defaults Section -->
+      <section class="settings-section">
+        <div class="section-header">
+          <h2 class="section-title">Agent Defaults</h2>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Default model</div>
+            <div class="setting-description">The LLM used for new agent instances.</div>
+          </div>
+          <div class="setting-control">
+            <div class="select-wrapper">
+              <select class="select">
+                <option>phi-3-mini</option>
+                <option>llama-3.2-3b</option>
+                <option>mistral-7b</option>
+                <option>claude-sonnet</option>
+              </select>
+              <svg
+                class="select-arrow"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Memory persistence</div>
+            <div class="setting-description">
+              Automatically save agent memory to append-only journals.
+            </div>
+          </div>
+          <div class="setting-control">
+            <div class="toggle active"></div>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Contradiction handling</div>
+            <div class="setting-description">How agents process conflicting information.</div>
+          </div>
+          <div class="setting-control">
+            <div class="select-wrapper">
+              <select class="select">
+                <option>Quarantine</option>
+                <option>Branch context</option>
+                <option>Human-in-loop</option>
+                <option>Auto-rewrite</option>
+              </select>
+              <svg
+                class="select-arrow"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Truth state hashing</div>
+            <div class="setting-description">
+              Enable PS-SHA∞ cryptographic commits for memory integrity.
+            </div>
+          </div>
+          <div class="setting-control">
+            <div class="toggle active"></div>
+          </div>
+        </div>
+
+        <div class="info-box">
+          <div class="info-box-header">
+            <svg
+              class="info-box-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 16v-4"></path>
+              <path d="M12 8h.01"></path>
+            </svg>
+            <span class="info-box-title">Memory journal location</span>
+          </div>
+          <div class="info-box-text">
+            Journals are stored at <span class="info-box-code">~/lucidia/logs/</span> with automatic
+            rotation every 24 hours.
+          </div>
+        </div>
+      </section>
+
+      <!-- Terminal Section -->
+      <section class="settings-section">
+        <div class="section-header">
+          <h2 class="section-title">Terminal</h2>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Default shell</div>
+            <div class="setting-description">Shell used for new terminal sessions.</div>
+          </div>
+          <div class="setting-control">
+            <input type="text" class="input mono" value="/bin/zsh" />
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Font size</div>
+            <div class="setting-description">Terminal text size in pixels.</div>
+          </div>
+          <div class="setting-control">
+            <div class="slider-container">
+              <input type="range" class="slider" min="10" max="20" value="14" />
+              <span class="slider-value">14px</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Cursor blink</div>
+            <div class="setting-description">Animate the terminal cursor.</div>
+          </div>
+          <div class="setting-control">
+            <div class="toggle"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Danger Zone -->
+      <section class="danger-section">
+        <div class="section-header">
+          <h2 class="section-title">Danger Zone</h2>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Reset all settings</div>
+            <div class="setting-description">
+              Restore all preferences to their default values. This cannot be undone.
+            </div>
+          </div>
+          <div class="setting-control">
+            <button class="danger-btn">Reset settings</button>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Clear agent memory</div>
+            <div class="setting-description">Purge all memory journals and truth state hashes.</div>
+          </div>
+          <div class="setting-control">
+            <button class="danger-btn">Clear memory</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
