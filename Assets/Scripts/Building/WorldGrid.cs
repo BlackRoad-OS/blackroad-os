@@ -4,8 +4,8 @@ using UnityEngine;
 namespace BlackRoad.Worldbuilder.Building
 {
     /// <summary>
-    /// Grid-based world system for placing and managing blocks.
-    /// Includes physics extension methods for block interactions.
+    /// Grid-based storage for placed blocks in the world.
+    /// Manages block placement, removal, and serialization.
     /// </summary>
     public class WorldGrid : MonoBehaviour
     {
@@ -16,7 +16,7 @@ namespace BlackRoad.Worldbuilder.Building
             new Dictionary<Vector3Int, GameObject>();
 
         /// <summary>
-        /// Converts world position to grid coordinates.
+        /// Convert world position to grid coordinates
         /// </summary>
         public Vector3Int WorldToGrid(Vector3 worldPos)
         {
@@ -28,7 +28,7 @@ namespace BlackRoad.Worldbuilder.Building
         }
 
         /// <summary>
-        /// Converts grid coordinates to world position.
+        /// Convert grid coordinates to world position
         /// </summary>
         public Vector3 GridToWorld(Vector3Int gridPos)
         {
@@ -40,7 +40,7 @@ namespace BlackRoad.Worldbuilder.Building
         }
 
         /// <summary>
-        /// Tries to get the block at the specified grid position.
+        /// Try to get the block at the specified grid position
         /// </summary>
         public bool TryGetBlock(Vector3Int gridPos, out GameObject block)
         {
@@ -48,7 +48,7 @@ namespace BlackRoad.Worldbuilder.Building
         }
 
         /// <summary>
-        /// Places a block at the specified grid position.
+        /// Place a block at the specified grid position
         /// </summary>
         public GameObject PlaceBlock(Vector3Int gridPos, BlockType blockType)
         {
@@ -69,7 +69,7 @@ namespace BlackRoad.Worldbuilder.Building
         }
 
         /// <summary>
-        /// Removes the block at the specified grid position.
+        /// Remove the block at the specified grid position
         /// </summary>
         public bool RemoveBlock(Vector3Int gridPos)
         {
@@ -89,76 +89,34 @@ namespace BlackRoad.Worldbuilder.Building
             return true;
         }
 
-        #region Physics Extension Methods
-
         /// <summary>
-        /// Checks if a block exists at the specified position.
+        /// Get all placed blocks in the grid (for serialization)
+        /// Returns dictionary of grid position to GameObject
         /// </summary>
-        public bool HasBlockAt(Vector3Int position)
+        public Dictionary<Vector3Int, GameObject> GetAllBlocks()
         {
-            return _placedBlocks.TryGetValue(position, out GameObject block) && block != null;
+            return new Dictionary<Vector3Int, GameObject>(_placedBlocks);
         }
 
         /// <summary>
-        /// Gets the block GameObject at the specified position.
+        /// Clear all blocks from the grid (for loading saved worlds)
         /// </summary>
-        public GameObject GetBlockAt(Vector3Int position)
+        public void ClearAll()
         {
-            if (_placedBlocks.TryGetValue(position, out GameObject block))
-                return block;
-            return null;
-        }
-
-        /// <summary>
-        /// Checks if the block at the specified position has a PhysicsBlock component.
-        /// </summary>
-        public bool IsPhysicsBlock(Vector3Int position)
-        {
-            if (!_placedBlocks.TryGetValue(position, out GameObject block) || block == null)
-                return false;
-
-            return block.GetComponent<World.PhysicsBlock>() != null;
-        }
-
-        /// <summary>
-        /// Triggers physics update on the block at the specified position.
-        /// </summary>
-        public void UpdatePhysicsAt(Vector3Int position)
-        {
-            if (!_placedBlocks.TryGetValue(position, out GameObject block) || block == null)
-                return;
-
-            var physicsBlock = block.GetComponent<World.PhysicsBlock>();
-            if (physicsBlock != null)
+            foreach (var kvp in _placedBlocks)
             {
-                // Physics blocks update themselves, just ensure they're active
-                physicsBlock.enabled = true;
+                if (kvp.Value != null)
+                {
+                    Destroy(kvp.Value);
+                }
             }
+
+            _placedBlocks.Clear();
         }
 
         /// <summary>
-        /// Notifies all adjacent blocks (6 directions) that something changed.
-        /// Useful for triggering physics updates on neighboring blocks.
+        /// Get the total count of placed blocks
         /// </summary>
-        public void NotifyAdjacentBlocks(Vector3Int position)
-        {
-            Vector3Int[] adjacentOffsets = new Vector3Int[]
-            {
-                Vector3Int.up,
-                Vector3Int.down,
-                Vector3Int.left,
-                Vector3Int.right,
-                Vector3Int.forward,
-                Vector3Int.back
-            };
-
-            foreach (var offset in adjacentOffsets)
-            {
-                Vector3Int adjacentPos = position + offset;
-                UpdatePhysicsAt(adjacentPos);
-            }
-        }
-
-        #endregion
+        public int BlockCount => _placedBlocks.Count;
     }
 }
