@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as fs from "fs";
-import * as path from "path";
 import {
   createEpisodeId,
   formatEpisodeDigest,
@@ -176,7 +175,14 @@ describe("Chronicles", () => {
   describe("getEpisodeById", () => {
     it("returns episode when found", () => {
       const episode = getEpisodeById("001");
-      expect(episode).toBe(episode001);
+      expect(episode).toEqual({
+        id: "001",
+        title: "Episode 001: Agent Emergence Digest",
+        agent: "guardian-clone-vault",
+        date: "2025-01-01",
+        mp3: "/audio/episode-001-lucidia-clone-awakens.mp3",
+        transcript: true,
+      });
     });
 
     it("returns undefined when not found", () => {

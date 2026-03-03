@@ -1,3 +1,4 @@
+/// <reference types="@cloudflare/workers-types" />
 import type { Env } from "../types/env";
 
 /**
