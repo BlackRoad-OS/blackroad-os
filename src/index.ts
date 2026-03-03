@@ -7,6 +7,7 @@ import {
   validateMetadata,
 } from "./digest";
 import type { PRMetadata, DigestRunnerConfig } from "./digest";
+import { ollamaChat, containsOllamaHandle, stripHandle, OLLAMA_HANDLES } from "./ollama";
 
 let runner: DigestVoiceRunner | null = null;
 
@@ -70,6 +71,36 @@ export async function createServer() {
     digestRunner.updateConfig(updates);
     return { success: true, config: digestRunner.getConfig() };
   });
+
+  // Ollama route – all @copilot / @lucidia / @blackboxprogramming / @ollama mentions
+  server.post<{ Body: { message?: string; model?: string } }>(
+    "/api/ollama/chat",
+    async (request, reply) => {
+      const { message, model } = request.body ?? {};
+      if (typeof message !== "string" || !message.trim()) {
+        reply.status(400);
+        return { error: "message must be a non-empty string" };
+      }
+      const lower = message.toLowerCase();
+      const detectedHandle = containsOllamaHandle(message)
+        ? OLLAMA_HANDLES.find((h) => lower.includes(h)) ?? null
+        : null;
+      const prompt = detectedHandle ? stripHandle(message) : message.trim();
+      try {
+        const result = await ollamaChat(prompt, { model });
+        const response: Record<string, unknown> = {
+          reply: result.message.content,
+          model: result.model,
+        };
+        if (detectedHandle) response.handle = detectedHandle;
+        return response;
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : "Ollama request failed";
+        reply.status(502);
+        return { error: msg };
+      }
+    }
+  );
 
   return server;
 }
