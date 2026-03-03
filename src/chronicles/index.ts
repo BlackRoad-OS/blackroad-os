@@ -40,7 +40,15 @@ function registryEpisodeToEpisode(registryEpisode: ChronicleEpisode): Episode {
 export function getEpisodeById(id: string): Episode | undefined {
   const registryEpisode = getRegistryEpisodeById(id);
   if (registryEpisode) {
-    return registryEpisodeToEpisode(registryEpisode);
+    // Convert ChronicleEpisode (from types/chronicles) to Episode format
+    return {
+      id: registryEpisode.id,
+      title: registryEpisode.title,
+      agent: registryEpisode.agentDesignation || "unknown",
+      date: registryEpisode.date,
+      mp3: registryEpisode.audioFile,
+      transcript: typeof registryEpisode.contentPath === "string" && registryEpisode.contentPath.trim().length > 0,
+    };
   }
   const chronicles = readChronicles();
   const normalizedId = id.startsWith("episode-") ? id : `episode-${id}`;

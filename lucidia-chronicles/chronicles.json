@@ -1,32 +1,68 @@
 {
-  "episodes": [
-    {
-      "id": "episode-001",
-      "title": "The Clone Awakens",
-      "agent": "guardian-clone-vault",
-      "date": "2025-11-23",
-      "mp3": "https://example.com/audio/guardian-clone-vault.mp3",
-      "transcript": true
-    },
-    {
-      "id": "episode-002",
-      "title": "The Digest Protocol",
-      "agent": "guardian-clone-vault",
-      "date": "2025-11-24",
-      "mp3": "https://example.com/audio/guardian-clone-vault.mp3",
-      "transcript": true
   "title": "Lucidia Chronicles",
   "description": "The canonical narrative archive of BlackRoad-OS agent evolution",
   "version": "1.0.0",
   "episodes": [
     {
-      "episode": 3,
+      "id": "003",
       "title": "The Scribe's Awakening",
-      "file": "episode-003.mdx",
-      "agentId": "scribe-agent-alpha",
-      "trigger": "digest-agent",
-      "timestamp": "2025-11-24",
-      "canonStatus": "staged"
+      "series": "Lucidia Chronicles",
+      "subtitle": "Episode 003",
+      "narrator": "Lucidia Prime",
+      "date": "2025-11-24",
+      "duration": "00:04:32",
+      "audioFile": "/audio/episode-003.mp3",
+      "tags": ["spawn", "scribe-agent", "digest"],
+      "agentDesignation": "scribe-agent-alpha",
+      "triggerEvent": "digest_count > 4",
+      "ttl": "14d",
+      "status": "active",
+      "commander": "BlackRoad Founders",
+      "contentPath": "/chronicles/episode-003.mdx"
+    },
+    {
+      "id": "002",
+      "title": "The Digest Protocol",
+      "series": "Lucidia Chronicles",
+      "subtitle": "Episode 002",
+      "narrator": "Lucidia Prime",
+      "date": "2025-11-23",
+      "duration": "00:03:45",
+      "audioFile": "/audio/episode-002.mp3",
+      "tags": ["digest", "voice", "automation"],
+      "agentDesignation": "guardian-clone-vault",
+      "triggerEvent": "pr_merge",
+      "status": "completed",
+      "contentPath": "/chronicles/episode-002.mdx"
+    },
+    {
+      "id": "001",
+      "title": "The Clone Awakens",
+      "series": "Lucidia Chronicles",
+      "subtitle": "Episode 001",
+      "narrator": "Lucidia Prime",
+      "date": "2025-11-22",
+      "duration": "00:05:12",
+      "audioFile": "/audio/episode-001.mp3",
+      "tags": ["origin", "guardian", "clone"],
+      "agentDesignation": "guardian-clone-vault",
+      "triggerEvent": "system_init",
+      "status": "completed",
+      "commander": "BlackRoad Founders",
+      "contentPath": "/chronicles/episode-001.mdx"
+    },
+    {
+      "id": "000",
+      "title": "BlackRoad Origin",
+      "series": "Lucidia Chronicles",
+      "subtitle": "Episode 000",
+      "narrator": "The Architect",
+      "date": "2025-11-21",
+      "duration": "00:06:00",
+      "audioFile": "/audio/episode-000.mp3",
+      "tags": ["origin", "blackroad", "founding"],
+      "status": "archived",
+      "contentPath": "/chronicles/episode-000.mdx"
     }
   ]
 }
