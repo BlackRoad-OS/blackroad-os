@@ -2,21 +2,14 @@ using UnityEngine;
 
 namespace BlackRoad.Worldbuilder.Building
 {
-    /// <summary>
-    /// Broad grouping used by <see cref="BlockDatabase"/> and the
-    /// <see cref="BlackRoad.Worldbuilder.UI.BlockSelectionBar"/> hotbar.
-    /// </summary>
+    /// <summary>Broad category used to group blocks in the selection bar and database.</summary>
     public enum BlockCategory
     {
         Terrain,
         Structure,
-        Decorative,
+        Decorative
     }
 
-    /// <summary>
-    /// ScriptableObject that describes a single placeable block type.
-    /// Create via <c>BlackRoad/Worldbuilder/BlockType</c> in the Project menu.
-    /// </summary>
     [CreateAssetMenu(
         fileName = "BlockType",
         menuName = "BlackRoad/Worldbuilder/BlockType",
@@ -48,12 +41,8 @@ namespace BlackRoad.Worldbuilder.Building
         public BlockCategory category = BlockCategory.Terrain;
 
         [Header("Gameplay")]
-        [Tooltip("Relative hardness (1 = default). Higher values take longer to break.")]
-        [Min(0.1f)]
-        public float hardness = 1f;
-
-        [Tooltip("Time in seconds for a player to break this block.")]
+        [Tooltip("Time in seconds required to break this block. 0 = instant.")]
         [Min(0f)]
-        public float breakTime = 0.5f;
+        public float breakTime = 0f;
     }
 }

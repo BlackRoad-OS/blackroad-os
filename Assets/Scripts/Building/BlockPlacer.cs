@@ -33,21 +33,11 @@ namespace BlackRoad.Worldbuilder.Building
         private Camera _camera;
         private BlockType _currentBlock;
 
-        // Breaking state
-        private bool _isBreaking = false;
-        private float _breakProgress = 0f;
-        private Vector3Int _breakingGridPos;
-        private float _currentHardness = 0f;
-
         /// <summary>
-        /// Currently selected block type
+        /// Programmatically set the active block type.
+        /// Called by <see cref="BlackRoad.Worldbuilder.UI.BlockSelectionBar"/> when the player changes selection.
         /// </summary>
-        public BlockType CurrentBlock => _currentBlock;
-
-        /// <summary>
-        /// Current break progress (0-1)
-        /// </summary>
-        public float BreakProgress => _breakProgress;
+        public void SetBlock(BlockType block) => _currentBlock = block;
 
         private void Awake()
         {

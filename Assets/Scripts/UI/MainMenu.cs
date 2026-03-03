@@ -1,9 +1,9 @@
 // Example usage:
-//   1. Create a separate "MainMenu" scene.
+//   1. Create a new Unity scene called "MainMenu".
 //   2. Add a Canvas with three Buttons: "New World", "Load World", "Quit".
-//   3. Add MainMenu to a GameObject in the scene.
-//   4. Wire the three Button references in the Inspector.
-//   5. Set newWorldScene and worldScene to the correct scene names in Build Settings.
+//   3. Add MainMenu to the Canvas (or any root GameObject).
+//   4. Assign the three Button references in the Inspector.
+//   5. Set the playScene and the saveSlot name in the Inspector.
 
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,12 +12,8 @@ using UnityEngine.SceneManagement;
 namespace BlackRoad.Worldbuilder.UI
 {
     /// <summary>
-    /// Drives the main-menu scene with three actions:
-    /// <list type="bullet">
-    ///   <item><description>New World – loads the world scene fresh.</description></item>
-    ///   <item><description>Load World – loads the world scene and triggers <c>WorldSerializer.Load()</c>.</description></item>
-    ///   <item><description>Quit – exits the application.</description></item>
-    /// </list>
+    /// Drives the main-menu screen.
+    /// Provides buttons for New World, Load World (if a save exists), and Quit.
     /// </summary>
     public class MainMenu : MonoBehaviour
     {
@@ -26,19 +22,14 @@ namespace BlackRoad.Worldbuilder.UI
         [SerializeField] private Button loadWorldButton;
         [SerializeField] private Button quitButton;
 
-        [Header("Scene Names")]
-        [Tooltip("Name of the main gameplay scene (must be in Build Settings).")]
-        [SerializeField] private string worldScene = "World";
+        [Header("Scene")]
+        [Tooltip("Name of the scene to load when starting or loading a world.")]
+        [SerializeField] private string playScene = "World";
 
-        [Header("Save Slot")]
-        [Tooltip("Slot passed to WorldSerializer.Load() when pressing Load World.")]
-        [SerializeField] private string loadSlot = "slot1";
-
-        // Shared flag read by WorldSerializer on scene load
-        internal static bool LoadOnStart { get; private set; } = false;
-        internal static string LoadSlot { get; private set; } = "slot1";
-
-        // ── Unity lifecycle ───────────────────────────────────────────────────
+        [Header("Save")]
+        [Tooltip("Slot name whose existence gates the Load World button.")]
+        [SerializeField] private string saveSlot = "slot1";
+        [SerializeField] private string saveFolderName = "WorldSaves";
 
         private void Awake()
         {
@@ -52,31 +43,53 @@ namespace BlackRoad.Worldbuilder.UI
                 quitButton.onClick.AddListener(OnQuit);
         }
 
-        // ── Button handlers ───────────────────────────────────────────────────
-
-        /// <summary>Starts a fresh world without loading any save file.</summary>
-        public void OnNewWorld()
+        private void Start()
         {
-            LoadOnStart = false;
-            SceneManager.LoadScene(worldScene);
+            // Enable/disable Load World based on save file existence.
+            if (loadWorldButton != null)
+                loadWorldButton.interactable = SaveExists();
         }
 
-        /// <summary>Loads the world scene and signals <see cref="Core.WorldSerializer"/> to restore a save.</summary>
-        public void OnLoadWorld()
+        // ─────────────────────────────────────────────────────────────────────
+
+        private void OnNewWorld()
         {
-            LoadOnStart = true;
-            LoadSlot = loadSlot;
-            SceneManager.LoadScene(worldScene);
+            // Clear any existing save flag so WorldSerializer starts fresh.
+            PlayerPrefs.SetInt("LoadOnStart", 0);
+            PlayerPrefs.Save();
+            SceneManager.LoadScene(playScene);
         }
 
-        /// <summary>Exits the application (no-op in the editor).</summary>
-        public void OnQuit()
+        private void OnLoadWorld()
+        {
+            if (!SaveExists()) return;
+
+            // Signal WorldSerializer to auto-load once the play scene initialises.
+            PlayerPrefs.SetInt("LoadOnStart", 1);
+            PlayerPrefs.SetString("LoadSlot", saveSlot);
+            PlayerPrefs.Save();
+            SceneManager.LoadScene(playScene);
+        }
+
+        private void OnQuit()
         {
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
 #else
             Application.Quit();
 #endif
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+
+        private bool SaveExists()
+        {
+            string path = System.IO.Path.Combine(
+                Application.persistentDataPath,
+                saveFolderName,
+                $"{saveSlot}.json"
+            );
+            return System.IO.File.Exists(path);
         }
     }
 }

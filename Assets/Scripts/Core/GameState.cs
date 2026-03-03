@@ -1,17 +1,17 @@
 namespace BlackRoad.Worldbuilder.Core
 {
     /// <summary>
-    /// Represents the high-level state of the game loop.
+    /// Top-level game states used by <see cref="GameManager"/>.
     /// </summary>
     public enum GameState
     {
-        /// <summary>The main menu scene is active.</summary>
+        /// <summary>Player is on the main-menu screen.</summary>
         MainMenu,
 
-        /// <summary>The player is actively building/exploring the world.</summary>
+        /// <summary>Player is actively building / exploring the world.</summary>
         Playing,
 
-        /// <summary>The game is paused; camera and building are frozen.</summary>
-        Paused,
+        /// <summary>Game is paused; input and simulation are frozen.</summary>
+        Paused
     }
 }

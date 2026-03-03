@@ -1,9 +1,8 @@
 // Example usage:
-//   1. Create a Canvas → Panel (horizontal layout) with a child Image named "SlotTemplate".
+//   1. Create a horizontal UI Panel with 9 equal child slots (Image components).
 //   2. Add BlockSelectionBar to the Panel.
-//   3. Assign your BlockDatabase asset and the SlotTemplate GameObject.
-//   4. The hotbar will auto-populate slots from the database on Awake.
-//   5. Keys 1–9 and mouse scroll wheel select a slot; the event fires for BuildTool/BlockPlacer.
+//   3. Assign the BlockDatabase and BlockPlacer in the Inspector.
+//   4. Press 1–9 to switch the active block, or use the mouse scroll wheel.
 
 using System.Collections.Generic;
 using UnityEngine;
@@ -13,114 +12,117 @@ using BlackRoad.Worldbuilder.Building;
 namespace BlackRoad.Worldbuilder.UI
 {
     /// <summary>
-    /// Reads a <see cref="BlockDatabase"/> and renders a simple hotbar of block slots.
-    /// Supports selection via number keys 1–9 and the mouse scroll wheel.
-    /// Fires <see cref="OnBlockSelected"/> when the selection changes so that
-    /// <see cref="Building.BlockPlacer"/> or other systems can react.
+    /// Reads a <see cref="BlockDatabase"/> and renders up to 9 selectable
+    /// block slots as a horizontal hotbar UI.
+    /// Scroll wheel and number keys 1-9 cycle through blocks;
+    /// the active selection is forwarded to <see cref="BlockPlacer"/>.
     /// </summary>
     public class BlockSelectionBar : MonoBehaviour
     {
         [Header("Data")]
         [SerializeField] private BlockDatabase blockDatabase;
 
-        [Header("UI")]
+        [Header("Building")]
+        [SerializeField] private BlockPlacer blockPlacer;
+
+        [Header("Slot template")]
+        [Tooltip("Inactive GameObject that acts as the UI slot template. Must be a child of this transform.")]
         [SerializeField] private GameObject slotTemplate;
+
+        [Header("Style")]
+        [SerializeField] private Color selectedColor = Color.white;
+        [SerializeField] private Color normalColor = new Color(1f, 1f, 1f, 0.55f);
         [SerializeField] private int maxSlots = 9;
 
-        [Header("Selection Colors")]
-        [SerializeField] private Color selectedColor = Color.white;
-        [SerializeField] private Color normalColor = new Color(1f, 1f, 1f, 0.5f);
+        /// <summary>Currently selected slot index (0-based).</summary>
+        public int SelectedIndex { get; private set; } = 0;
 
-        [Header("Label")]
-        [SerializeField] private Text selectedBlockLabel;
+        /// <summary>Currently selected <see cref="BlockType"/>, or null if none.</summary>
+        public BlockType SelectedBlock =>
+            _blocks != null && SelectedIndex >= 0 && SelectedIndex < _blocks.Count
+                ? _blocks[SelectedIndex]
+                : null;
 
-        /// <summary>Raised whenever the player changes the selected block type.</summary>
-        public System.Action<BlockType> OnBlockSelected;
-
-        private readonly List<GameObject> _slots = new List<GameObject>();
         private readonly List<BlockType> _blocks = new List<BlockType>();
-        private int _selectedIndex = 0;
-
-        // ── Unity lifecycle ──────────────────────────────────────────────────
+        private readonly List<GameObject> _slots = new List<GameObject>();
+        private readonly List<Text> _slotLabels = new List<Text>();
 
         private void Awake()
         {
-            BuildHotbar();
+            if (blockDatabase == null)
+                blockDatabase = FindObjectOfType<BlockDatabase>();
+
+            if (blockPlacer == null)
+                blockPlacer = FindObjectOfType<BlockPlacer>();
+
+            if (slotTemplate != null)
+                slotTemplate.SetActive(false);
+
+            PopulateBlocks();
+            BuildSlots();
+            Refresh();
         }
 
         private void Update()
         {
-            HandleKeyInput();
-            HandleScrollInput();
+            HandleInput();
         }
 
-        // ── Public API ────────────────────────────────────────────────────────
+        // ─────────────────────────────────────────────────────────────────────
 
-        /// <summary>Returns the currently selected <see cref="BlockType"/>, or null.</summary>
-        public BlockType GetSelected()
+        private void PopulateBlocks()
         {
-            if (_selectedIndex < 0 || _selectedIndex >= _blocks.Count)
-                return null;
-            return _blocks[_selectedIndex];
-        }
-
-        /// <summary>Programmatically selects a slot by zero-based index.</summary>
-        public void Select(int index)
-        {
-            if (_blocks.Count == 0) return;
-            _selectedIndex = Mathf.Clamp(index, 0, _blocks.Count - 1);
-            RefreshVisuals();
-            OnBlockSelected?.Invoke(GetSelected());
-        }
-
-        // ── Private helpers ───────────────────────────────────────────────────
-
-        private void BuildHotbar()
-        {
-            // Clear old slots
-            foreach (var go in _slots)
-            {
-                if (go != null) Destroy(go);
-            }
-            _slots.Clear();
             _blocks.Clear();
 
-            if (blockDatabase == null || blockDatabase.blocks == null) return;
+            if (blockDatabase == null || blockDatabase.blocks == null)
+                return;
+
+            int count = 0;
+            foreach (var block in blockDatabase.blocks)
+            {
+                if (block == null) continue;
+                _blocks.Add(block);
+                if (++count >= maxSlots) break;
+            }
+        }
+
+        private void BuildSlots()
+        {
+            foreach (var go in _slots)
+            {
+                if (go != null)
+                    Destroy(go);
+            }
+            _slots.Clear();
+            _slotLabels.Clear();
+
             if (slotTemplate == null) return;
 
-            slotTemplate.SetActive(false);
-
-            int count = Mathf.Min(blockDatabase.blocks.Length, maxSlots);
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < _blocks.Count; i++)
             {
-                var blockType = blockDatabase.blocks[i];
-                if (blockType == null) continue;
-
-                _blocks.Add(blockType);
-
                 var slot = Instantiate(slotTemplate, slotTemplate.transform.parent);
-                slot.name = $"Slot_{i}_{blockType.blockId}";
+                slot.name = $"BlockSlot_{i}";
                 slot.SetActive(true);
                 _slots.Add(slot);
 
-                // Try to set a tooltip / label via a Text child named "Label"
+                // Cache label reference once at build time to avoid per-frame allocations.
+                Text label = null;
                 foreach (Transform child in slot.transform)
                 {
-                    if (child.name.ToLower().Contains("label"))
+                    if (child.name.IndexOf("label", System.StringComparison.OrdinalIgnoreCase) >= 0)
                     {
-                        var txt = child.GetComponent<Text>();
-                        if (txt != null)
-                            txt.text = blockType.displayName;
+                        label = child.GetComponent<Text>();
+                        break;
                     }
                 }
+                _slotLabels.Add(label);
             }
-
-            RefreshVisuals();
         }
 
-        private void HandleKeyInput()
+        private void HandleInput()
         {
-            for (int i = 0; i < _blocks.Count && i < 9; i++)
+            // Number keys 1..9
+            for (int i = 0; i < _slots.Count && i < 9; i++)
             {
                 if (UnityEngine.Input.GetKeyDown(KeyCode.Alpha1 + i))
                 {
@@ -128,36 +130,50 @@ namespace BlackRoad.Worldbuilder.UI
                     return;
                 }
             }
-        }
 
-        private void HandleScrollInput()
-        {
+            // Scroll wheel
             float scroll = UnityEngine.Input.GetAxis("Mouse ScrollWheel");
-            if (scroll == 0f || _blocks.Count == 0) return;
-
-            int next = _selectedIndex + (scroll > 0f ? -1 : 1);
-            // Wrap around
-            next = ((next % _blocks.Count) + _blocks.Count) % _blocks.Count;
-            Select(next);
+            if (scroll > 0f)
+                Select((_slots.Count == 0) ? 0 : (SelectedIndex - 1 + _slots.Count) % _slots.Count);
+            else if (scroll < 0f)
+                Select((_slots.Count == 0) ? 0 : (SelectedIndex + 1) % _slots.Count);
         }
 
-        private void RefreshVisuals()
+        /// <summary>Selects slot at <paramref name="index"/> and updates the placer.</summary>
+        public void Select(int index)
+        {
+            if (_blocks.Count == 0) return;
+
+            SelectedIndex = Mathf.Clamp(index, 0, _blocks.Count - 1);
+            Refresh();
+            SyncPlacer();
+        }
+
+        private void Refresh()
         {
             for (int i = 0; i < _slots.Count; i++)
             {
                 var slot = _slots[i];
                 if (slot == null) continue;
 
-                var img = slot.GetComponent<Image>();
-                if (img != null)
-                    img.color = i == _selectedIndex ? selectedColor : normalColor;
-            }
+                // Background tint
+                var bg = slot.GetComponent<Image>();
+                if (bg != null)
+                    bg.color = i == SelectedIndex ? selectedColor : normalColor;
 
-            if (selectedBlockLabel != null)
-            {
-                var selected = GetSelected();
-                selectedBlockLabel.text = selected != null ? selected.displayName : string.Empty;
+                // Use cached label reference (populated during BuildSlots).
+                if (i < _slotLabels.Count && _slotLabels[i] != null && i < _blocks.Count && _blocks[i] != null)
+                    _slotLabels[i].text = _blocks[i].displayName;
             }
+        }
+
+        private void SyncPlacer()
+        {
+            if (blockPlacer == null) return;
+
+            // Forward selected block to BlockPlacer via reflection-free public API.
+            // BlockPlacer exposes SetBlock so other systems can drive selection.
+            blockPlacer.SetBlock(SelectedBlock);
         }
     }
 }
