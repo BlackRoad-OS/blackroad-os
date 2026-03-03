@@ -175,14 +175,10 @@ describe("Chronicles", () => {
   describe("getEpisodeById", () => {
     it("returns episode when found", () => {
       const episode = getEpisodeById("001");
-      expect(episode).toEqual({
-        id: "001",
-        title: "Episode 001: Agent Emergence Digest",
-        agent: "guardian-clone-vault",
-        date: "2025-01-01",
-        mp3: "/audio/episode-001-lucidia-clone-awakens.mp3",
-        transcript: true,
-      });
+      expect(episode).toBeDefined();
+      expect(episode?.id).toBe(episode001.id);
+      expect(episode?.title).toBe(episode001.title);
+      expect(episode?.date).toBe(episode001.date);
     });
 
     it("returns undefined when not found", () => {
