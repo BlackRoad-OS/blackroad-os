@@ -22,7 +22,7 @@ permissions:
 jobs:
   analyze-failure:
     if: github.event.workflow_run.conclusion == 'failure' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, blackroad-fleet]
     outputs:
       fix_type: ${{ steps.diagnose.outputs.fix_type }}
       needs_healing: ${{ steps.diagnose.outputs.needs_healing }}
@@ -51,7 +51,7 @@ jobs:
   auto-heal:
     needs: analyze-failure
     if: needs.analyze-failure.outputs.needs_healing == 'true'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, blackroad-fleet]
     steps:
       - name: Checkout Code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -100,7 +100,7 @@ jobs:
 
   health-check:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, blackroad-fleet]
     steps:
       - name: Check Service Health
         run: |

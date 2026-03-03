@@ -37,14 +37,14 @@ permissions:
 
 jobs:
   spawn-agent:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, blackroad-fleet]
     steps:
       - name: 🧬 Checkout Repo
         uses: actions/checkout@v3
 
       - name: 🧠 Set up Node
   spawn-runner:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, blackroad-fleet]
     steps:
       - uses: actions/checkout@v3
 

@@ -24,7 +24,8 @@ jobs:
           echo "GitHub Actions:"
           echo "  ✅ octavia-pi (self-hosted)  = \$0.00/min"
           echo "  ✅ gematria-codex (self-hosted) = \$0.00/min"
-          echo "  ⚠️  ubuntu-latest jobs        = \$0.008/min (minimize!)"
+          echo "  ✅ blackroad-fleet (self-hosted) = \$0.00/min"
+          echo "  ✅ All workflows migrated to self-hosted — \$0.00 billing"
           echo ""
           echo "Cloudflare:"
           echo "  ✅ Workers (free tier <100k/day) = \$0.00"
@@ -44,8 +45,8 @@ jobs:
           echo "  Pi model: http://192.168.4.38:11435"
           echo ""
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          echo "  Self-hosted runner savings: ~\$0.008 × (workflow minutes)"
-          echo "  Target: Migrate ubuntu-latest → self-hosted"
+          echo "  All workflows running on self-hosted runners"
+          echo "  GitHub Actions billing: \$0.00 ✅"
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
       - name: List runners
         env:
