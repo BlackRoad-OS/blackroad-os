@@ -7,6 +7,7 @@ const repoId = z.string().min(1, 'repo id required')
 
 export const EnvironmentSchema = z.object({
   domain_root: z.string().min(1, 'domain_root required'),
+  public_domain: z.string().optional(),
   description: z.string().optional(),
 })
 
@@ -66,8 +67,9 @@ export const TrinitySchema = z.object({
 export const ManifestSchema = z.object({
   version: z.string().min(1),
   repos: z.record(repoId),
-  services: z.record(ServiceSchema),
-  packs: z.array(z.string()),
+  services: z.union([z.record(ServiceSchema), z.array(ServiceSchema)]).optional().default({}),
+  categories: z.record(z.array(z.string())).optional().default({}),
+  packs: z.array(z.string()).optional().default([]),
   environments: z.record(EnvironmentSchema),
   trinity: TrinitySchema.optional(),
 })
