@@ -114,75 +114,29 @@ function readme(manifest: Manifest) {
     console.warn('Warning: README.stub.md not found or unreadable:', err)
   }
   const table = `| Service | Env | Repo | URL | Health | Depends |\n| --- | --- | --- | --- | --- | --- |\n${rows}`
-  
-  // Add Trinity section if available
-  const trinitySection = getTrinitySection(manifest)
-  
-  return [header.trim(), '', '## Service Matrix', table, '', '## Topology', mermaid, trinitySection, ''].join('\n')
-}
-
-function getTrinitySection(manifest: Manifest): string {
-  if (!manifest.trinity) {
-    return ''
-  }
-
-  const status = getTrinityStatus()
-  if (!status.enabled) {
-    return ''
-  }
-
-  const sections = [
+  const packs = manifest.packs.length
+    ? manifest.packs.map((pack) => `- ${pack}`).join('\n')
+    : '_No packs defined._'
+  const environmentsRows = Object.entries(manifest.environments)
+    .map(([name, env]) => `| ${name} | ${env.domain_root} |`)
+    .join('\n')
+  const environmentsTable = `| Environment | Domain Root |\n| --- | --- |\n${environmentsRows}`
+  return [
+    header.trim(),
     '',
-    '## 🌈 Trinity System',
+    '## Service Matrix',
+    table,
     '',
-  ]
-
-  // RedLight templates
-  if (status.redlight.enabled && manifest.trinity.redlight?.templates) {
-    const templates = manifest.trinity.redlight.templates
-    if (templates.length > 0) {
-      sections.push('### 🔴 RedLight Templates')
-      sections.push('')
-      
-      const byCategory: Record<string, typeof templates> = {}
-      for (const template of templates) {
-        if (!byCategory[template.category]) {
-          byCategory[template.category] = []
-        }
-        byCategory[template.category].push(template)
-      }
-      
-      for (const [category, categoryTemplates] of Object.entries(byCategory)) {
-        sections.push(`**${category}** (${categoryTemplates.length} templates)`)
-        sections.push('')
-        for (const template of categoryTemplates.slice(0, 5)) {
-          sections.push(`- ${template.name} (\`${template.id}\`)`)
-        }
-        if (categoryTemplates.length > 5) {
-          sections.push(`- *...and ${categoryTemplates.length - 5} more*`)
-        }
-        sections.push('')
-      }
-    }
-  }
-
-  // GreenLight status
-  if (status.greenlight.enabled) {
-    sections.push('### 💚 GreenLight')
-    sections.push('')
-    sections.push('Project management and collaboration system enabled.')
-    sections.push('')
-  }
-
-  // YellowLight status
-  if (status.yellowlight.enabled) {
-    sections.push('### 💛 YellowLight')
-    sections.push('')
-    sections.push('Infrastructure orchestration system enabled.')
-    sections.push('')
-  }
-
-  return sections.join('\n')
+    '## Packs',
+    packs,
+    '',
+    '## Environments',
+    environmentsTable,
+    '',
+    '## Topology',
+    mermaid,
+    '',
+  ].join('\n')
 }
 
 export function render(manifest: Manifest, cwd = process.cwd()) {

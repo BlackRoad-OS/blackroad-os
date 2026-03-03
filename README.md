@@ -52,6 +52,20 @@ This repository includes the **Light Trinity System** - a unified intelligence, 
 | legal-pack | prod | pack-legal | https://legal.blackroad.systems | /health | api-gateway, core-app |
 | research-pack | prod | pack-research | https://lab.blackroad.systems | /health | api-gateway, core-app |
 
+## Packs
+- education
+- infra-devops
+- creator-studio
+- finance
+- legal
+- research-lab
+
+## Environments
+| Environment | Domain Root |
+| --- | --- |
+| dev | dev.blackroad.io |
+| prod | blackroad.io |
+
 ## Topology
 ```mermaid
 graph LR
