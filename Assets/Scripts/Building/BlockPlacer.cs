@@ -234,6 +234,8 @@ namespace BlackRoad.Worldbuilder.Building
         /// </summary>
         private void HandlePlacement(RaycastHit hit)
         {
+            if (_currentBlock == null) return;
+
             // Check inventory
             if (_inventoryManager != null && !_inventoryManager.HasItem(_currentBlock.blockId, 1))
             {

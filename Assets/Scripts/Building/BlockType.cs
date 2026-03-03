@@ -39,10 +39,5 @@ namespace BlackRoad.Worldbuilder.Building
 
         [Header("Classification")]
         public BlockCategory category = BlockCategory.Terrain;
-
-        [Header("Gameplay")]
-        [Tooltip("Time in seconds required to break this block. 0 = instant.")]
-        [Min(0f)]
-        public float breakTime = 0f;
     }
 }

@@ -59,6 +59,18 @@ namespace BlackRoad.Worldbuilder.Building
             return null;
         }
 
+        /// <summary>Returns the number of blocks in the database.</summary>
+        public int Count => blocks != null ? blocks.Length : 0;
+
+        /// <summary>Returns the block at the given index, or null if out of range.</summary>
+        public BlockType GetAtIndex(int index)
+        {
+            if (blocks == null || index < 0 || index >= blocks.Length)
+                return null;
+
+            return blocks[index];
+        }
+
         /// <summary>
         /// Returns all blocks that belong to the specified <paramref name="category"/>.
         /// </summary>
