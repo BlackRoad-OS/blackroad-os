@@ -1,5 +1,3 @@
-/// <reference types="@cloudflare/workers-types" />
-
 export interface Env {
   // D1 Databases
   DB_SAAS: D1Database;

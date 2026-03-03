@@ -1,8 +1,13 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace BlackRoad.Worldbuilder.Building
 {
+    /// <summary>
+    /// ScriptableObject that holds all registered <see cref="BlockType"/> assets.
+    /// Create via <c>BlackRoad/Worldbuilder/BlockDatabase</c> in the Project menu.
+    /// </summary>
     [CreateAssetMenu(
         fileName = "BlockDatabase",
         menuName = "BlackRoad/Worldbuilder/BlockDatabase",
@@ -36,6 +41,7 @@ namespace BlackRoad.Worldbuilder.Building
             }
         }
 
+        /// <summary>Returns the <see cref="BlockType"/> with the given id, or null.</summary>
         public BlockType Get(string id)
         {
             if (_byId == null || _byId.Count == 0)
@@ -44,12 +50,43 @@ namespace BlackRoad.Worldbuilder.Building
             return _byId != null && _byId.TryGetValue(id, out var block) ? block : null;
         }
 
+        /// <summary>Returns the first block in the database, or null if the database is empty.</summary>
         public BlockType GetDefault()
         {
             if (blocks != null && blocks.Length > 0)
                 return blocks[0];
 
             return null;
+        }
+
+        /// <summary>Returns the number of blocks in the database.</summary>
+        public int Count => blocks != null ? blocks.Length : 0;
+
+        /// <summary>Returns the block at the given index, or null if out of range.</summary>
+        public BlockType GetAtIndex(int index)
+        {
+            if (blocks == null || index < 0 || index >= blocks.Length)
+                return null;
+
+            return blocks[index];
+        }
+
+        /// <summary>
+        /// Returns all blocks that belong to the specified <paramref name="category"/>.
+        /// </summary>
+        public BlockType[] GetByCategory(BlockCategory category)
+        {
+            if (blocks == null)
+                return System.Array.Empty<BlockType>();
+
+            var result = new List<BlockType>();
+            foreach (var block in blocks)
+            {
+                if (block != null && block.category == category)
+                    result.Add(block);
+            }
+
+            return result.ToArray();
         }
     }
 }

@@ -7,166 +7,219 @@ using BlackRoad.Worldbuilder.Building;
 namespace BlackRoad.Worldbuilder.Core
 {
     /// <summary>
-    /// Saves and loads all Buildable objects in the scene
-    /// to a JSON file in Application.persistentDataPath.
-    /// F5 = save, F9 = load (default slot "slot1").
+    /// Saves and loads WorldGrid blocks to JSON file.
+    /// Press F5 to save, F9 to load (default slot "slot1").
+    /// Serializes grid positions and block IDs.
     /// </summary>
     public class WorldSerializer : MonoBehaviour
     {
-        [Header("Registry")]
-        [SerializeField] private BuildableRegistry registry;
+        [Header("References")]
+        [SerializeField] private WorldGrid worldGrid;
+        [SerializeField] private BlockDatabase blockDatabase;
 
-        [Header("Slot")]
+        [Header("Save Settings")]
         [SerializeField] private string slotName = "slot1";
+        [SerializeField] private string folderName = "WorldSaves";
 
-        [Header("Keys")]
+        [Header("Input")]
         [SerializeField] private KeyCode saveKey = KeyCode.F5;
         [SerializeField] private KeyCode loadKey = KeyCode.F9;
 
-        [Header("Options")]
-        [SerializeField] private bool autoCreateFolder = true;
-        [SerializeField] private string folderName = "WorldSaves";
-
         [Serializable]
-        private class PlacedObjectData
+        private class BlockData
         {
-            public string id;
-            public float px, py, pz;
-            public float rx, ry, rz;
-            public float sx, sy, sz;
+            public string blockId;
+            public int gridX, gridY, gridZ;
         }
 
         [Serializable]
-        private class WorldSave
+        private class WorldSaveData
         {
-            public PlacedObjectData[] objects;
+            public BlockData[] blocks;
+            public float cellSize;
         }
 
         private string SaveDirectory =>
-            autoCreateFolder
-                ? Path.Combine(Application.persistentDataPath, folderName)
-                : Application.persistentDataPath;
+            Path.Combine(Application.persistentDataPath, folderName);
 
         private string SavePath =>
             Path.Combine(SaveDirectory, $"{slotName}.json");
 
+        private void Start()
+        {
+            if (worldGrid == null)
+                worldGrid = FindObjectOfType<WorldGrid>();
+
+            if (blockDatabase == null && Core.GameManager.Instance != null)
+                blockDatabase = Core.GameManager.Instance.blockDatabase;
+        }
+
         private void Update()
         {
-            if (Input.GetKeyDown(saveKey))
+            // F5 to save
+            if (UnityEngine.Input.GetKeyDown(saveKey))
             {
-                Save();
+                Save(slotName);
             }
 
-            if (Input.GetKeyDown(loadKey))
+            // F9 to load
+            if (UnityEngine.Input.GetKeyDown(loadKey))
             {
-                Load();
+                Load(slotName);
             }
         }
 
-        [ContextMenu("Save Now")]
-        public void Save()
+        /// <summary>
+        /// Save the current world grid to a JSON file
+        /// </summary>
+        [ContextMenu("Save World")]
+        public void Save(string slot)
         {
-            if (registry == null)
+            if (worldGrid == null)
             {
-                Debug.LogError("[WorldSerializer] No BuildableRegistry assigned.");
+                Debug.LogError("[WorldSerializer] No WorldGrid assigned.");
                 return;
             }
 
-            var buildables = FindObjectsOfType<Buildable>();
-            var list = new List<PlacedObjectData>();
-
-            foreach (var b in buildables)
+            if (blockDatabase == null)
             {
-                if (b == null) continue;
-
-                var t = b.transform;
-                var id = b.Id;
-                if (string.IsNullOrWhiteSpace(id))
-                    continue;
-
-                var data = new PlacedObjectData
-                {
-                    id = id,
-                    px = t.position.x,
-                    py = t.position.y,
-                    pz = t.position.z,
-                    rx = t.rotation.eulerAngles.x,
-                    ry = t.rotation.eulerAngles.y,
-                    rz = t.rotation.eulerAngles.z,
-                    sx = t.localScale.x,
-                    sy = t.localScale.y,
-                    sz = t.localScale.z
-                };
-
-                list.Add(data);
+                Debug.LogError("[WorldSerializer] No BlockDatabase assigned.");
+                return;
             }
 
-            var save = new WorldSave { objects = list.ToArray() };
-            string json = JsonUtility.ToJson(save, true);
+            var allBlocks = worldGrid.GetAllBlocks();
+            var blockDataList = new List<BlockData>();
+
+            foreach (var kvp in allBlocks)
+            {
+                Vector3Int gridPos = kvp.Key;
+                GameObject blockObj = kvp.Value;
+
+                if (blockObj == null)
+                    continue;
+
+                // Try to find the block type by comparing prefabs
+                // This is a simple approach - in production you'd store the block type reference
+                string blockId = FindBlockIdFromPrefab(blockObj);
+                if (string.IsNullOrEmpty(blockId))
+                    continue;
+
+                blockDataList.Add(new BlockData
+                {
+                    blockId = blockId,
+                    gridX = gridPos.x,
+                    gridY = gridPos.y,
+                    gridZ = gridPos.z
+                });
+            }
+
+            var saveData = new WorldSaveData
+            {
+                blocks = blockDataList.ToArray(),
+                cellSize = worldGrid.cellSize
+            };
+
+            string json = JsonUtility.ToJson(saveData, true);
 
             if (!Directory.Exists(SaveDirectory))
             {
                 Directory.CreateDirectory(SaveDirectory);
             }
 
-            File.WriteAllText(SavePath, json);
-            Debug.Log($"[WorldSerializer] Saved {list.Count} objects to {SavePath}");
+            string savePath = Path.Combine(SaveDirectory, $"{slot}.json");
+            File.WriteAllText(savePath, json);
+
+            Debug.Log($"[WorldSerializer] Saved {blockDataList.Count} blocks to {savePath}");
         }
 
-        [ContextMenu("Load Now")]
-        public void Load()
+        /// <summary>
+        /// Load a saved world from JSON file
+        /// </summary>
+        [ContextMenu("Load World")]
+        public void Load(string slot)
         {
-            if (registry == null)
+            if (worldGrid == null)
             {
-                Debug.LogError("[WorldSerializer] No BuildableRegistry assigned.");
+                Debug.LogError("[WorldSerializer] No WorldGrid assigned.");
                 return;
             }
 
-            if (!File.Exists(SavePath))
+            if (blockDatabase == null)
             {
-                Debug.LogWarning($"[WorldSerializer] No save file at {SavePath}");
+                Debug.LogError("[WorldSerializer] No BlockDatabase assigned.");
                 return;
             }
 
-            string json = File.ReadAllText(SavePath);
-            var save = JsonUtility.FromJson<WorldSave>(json);
-            if (save == null || save.objects == null)
+            string savePath = Path.Combine(SaveDirectory, $"{slot}.json");
+
+            if (!File.Exists(savePath))
+            {
+                Debug.LogWarning($"[WorldSerializer] No save file found at {savePath}");
+                return;
+            }
+
+            string json = File.ReadAllText(savePath);
+            var saveData = JsonUtility.FromJson<WorldSaveData>(json);
+
+            if (saveData == null || saveData.blocks == null)
             {
                 Debug.LogError("[WorldSerializer] Failed to parse save file.");
                 return;
             }
 
-            // Remove existing buildables first
-            var existing = FindObjectsOfType<Buildable>();
-            foreach (var b in existing)
+            // Clear existing world
+            worldGrid.ClearAll();
+
+            // Restore cell size if it was saved
+            if (saveData.cellSize > 0)
             {
-                if (b != null)
-                {
-                    Destroy(b.gameObject);
-                }
+                worldGrid.cellSize = saveData.cellSize;
             }
 
-            int spawned = 0;
-            foreach (var obj in save.objects)
+            // Place all saved blocks
+            int loadedCount = 0;
+            foreach (var blockData in saveData.blocks)
             {
-                var prefab = registry.GetPrefab(obj.id);
-                if (prefab == null)
+                BlockType blockType = blockDatabase.Get(blockData.blockId);
+                if (blockType == null)
                 {
-                    Debug.LogWarning($"[WorldSerializer] No prefab for id '{obj.id}'");
+                    Debug.LogWarning($"[WorldSerializer] Block type '{blockData.blockId}' not found in database.");
                     continue;
                 }
 
-                Vector3 pos = new Vector3(obj.px, obj.py, obj.pz);
-                Quaternion rot = Quaternion.Euler(obj.rx, obj.ry, obj.rz);
-                Vector3 scale = new Vector3(obj.sx, obj.sy, obj.sz);
-
-                var instance = Instantiate(prefab, pos, rot);
-                instance.transform.localScale = scale;
-
-                spawned++;
+                Vector3Int gridPos = new Vector3Int(blockData.gridX, blockData.gridY, blockData.gridZ);
+                worldGrid.PlaceBlock(gridPos, blockType);
+                loadedCount++;
             }
 
-            Debug.Log($"[WorldSerializer] Loaded {spawned} objects from {SavePath}");
+            Debug.Log($"[WorldSerializer] Loaded {loadedCount} blocks from {savePath}");
+        }
+
+        /// <summary>
+        /// Find block ID by comparing with database prefabs
+        /// This is a simple implementation - consider storing block type reference on GameObjects
+        /// </summary>
+        private string FindBlockIdFromPrefab(GameObject instance)
+        {
+            if (blockDatabase == null || blockDatabase.blocks == null)
+                return null;
+
+            // Compare by name (simple approach)
+            string instanceName = instance.name.Replace("(Clone)", "").Trim();
+
+            foreach (var blockType in blockDatabase.blocks)
+            {
+                if (blockType != null && blockType.prefab != null)
+                {
+                    string prefabName = blockType.prefab.name;
+                    if (instanceName == prefabName)
+                    {
+                        return blockType.blockId;
+                    }
+                }
+            }
+
+            return null;
         }
     }
 }

@@ -1,28 +1,7 @@
-name: 🛡️ Guardian Clone Vault – Sentinel Agent
-
-on:
-  issue_comment:
-    types: [created]
-name: 🤖 guardian-clone-vault – sentinel workflow
-
-on:
-  workflow_dispatch:
-    inputs:
-      action:
-        description: 'Action to perform'
-        required: true
-        default: 'triage'
-        type: choice
-        options:
-          - triage
-          - warm-up
-          - status
-          - deactivate
 name: 🛡️ Guardian Clone Vault - Automated Backup
 
 on:
   schedule:
-    # Run every 6 hours
     - cron: '0 */6 * * *'
   workflow_dispatch:
     inputs:
@@ -47,61 +26,10 @@ on:
       - guardian.state.changed
       - vault.backup.scheduled
       - restore.requested
-        default: 'run'
-        type: choice
-        options:
-          - run
-          - warm-up
-          - deactivate
-  schedule:
-    - cron: '0 */6 * * *'  # Run every 6 hours
 
 permissions:
-  contents: read
-
-jobs:
-  guardian-clone-vault:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - name: 🧬 Checkout Repo
-        uses: actions/checkout@v3
-
-      - name: 🧠 Set up Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-
-      - name: 📦 Load Agent Config
-        id: config
-        run: |
-          CONFIG=$(cat agents/guardian-clone-vault.agent.json)
-          echo "agent_id=$(echo $CONFIG | jq -r '.id')" >> $GITHUB_OUTPUT
-          echo "role=$(echo $CONFIG | jq -r '.role')" >> $GITHUB_OUTPUT
-          echo "ttl=$(echo $CONFIG | jq -r '.ttl')" >> $GITHUB_OUTPUT
-
-      - name: 🛡️ Run Guardian Clone Vault Handler
-        run: |
-          echo "🛡️ Guardian Clone Vault Activated"
-          echo "Agent ID: ${{ steps.config.outputs.agent_id }}"
-          echo "Role: ${{ steps.config.outputs.role }}"
-          echo "TTL: ${{ steps.config.outputs.ttl }}"
-          echo "Action: ${{ github.event.inputs.action || 'triage' }}"
-          echo "---"
-          echo "Processing escalation queue..."
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        type: choice
-        options:
-          - process
-          - status
-          - terminate
-  schedule:
-    - cron: '*/15 * * * *'  # Run every 15 minutes
-
-permissions:
-  contents: read
+  contents: write
+  actions: read
 
 env:
   AGENT_NAME: guardian-clone-vault
@@ -111,30 +39,7 @@ env:
 
 jobs:
   agent-process:
-    runs-on: ubuntu-latest
-    steps:
-      - name: 🧬 Checkout
-        uses: actions/checkout@v4
-
-      - name: 📊 Check Agent TTL
-        id: ttl-check
-        run: |
-          echo "Checking TTL for guardian-clone-vault..."
-          echo "ttl_valid=true" >> $GITHUB_OUTPUT
-
-      - name: 🤖 Execute Agent Logic
-        if: steps.ttl-check.outputs.ttl_valid == 'true'
-        run: |
-          echo "🤖 guardian-clone-vault activated"
-          echo "Role: sentinel"
-          echo "Processing triggers: escalation_created, high_priority_issue, sla_breach"
-
-      - name: 📝 Report Status
-        run: |
-          echo "✅ Agent guardian-clone-vault completed processing cycle"
-      contents: write
-      actions: read
-
+    runs-on: [self-hosted, blackroad-fleet]
     steps:
       - name: 🧬 Checkout Repository
         uses: actions/checkout@v4
@@ -171,19 +76,12 @@ jobs:
           echo "Operation: $OPERATION"
           echo "Target: $TARGET"
           echo "Event Type: $EVENT_TYPE"
-
-          # Create vault directory if it doesn't exist
           mkdir -p vault/guardian-clones
-
-          # Generate snapshot timestamp
           TIMESTAMP=$(date +%Y%m%d_%H%M%S)
           echo "timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
-
-          # Execute based on operation type
           case $OPERATION in
             backup)
               echo "📸 Creating backup snapshot..."
-              # Clone agent configurations
               if [ -d "agents" ]; then
                 cp -r agents "vault/guardian-clones/agents_$TIMESTAMP"
                 echo "✅ Agent configurations backed up"
@@ -191,22 +89,18 @@ jobs:
               ;;
             restore)
               echo "🔄 Initiating restore operation..."
-              # List available snapshots
               ls -la vault/guardian-clones/ || echo "No snapshots available"
               ;;
             verify)
               echo "🔍 Verifying vault integrity..."
-              # Check for existing backups
               if [ -d "vault/guardian-clones" ]; then
                 find vault/guardian-clones -type f -exec sha256sum {} \;
               fi
               ;;
             sync)
               echo "🔄 Synchronizing configurations..."
-              # Sync logic would go here
               ;;
           esac
-
           echo "status=success" >> $GITHUB_OUTPUT
 
       - name: 📝 Generate Audit Log
@@ -214,17 +108,15 @@ jobs:
         run: |
           mkdir -p vault/logs
           TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-          cat << EOF > vault/logs/audit_$TIMESTAMP.log
-          {
-            "timestamp": "$(date -Iseconds)",
-            "agent": "guardian-clone-vault",
-            "operation": "${{ github.event.inputs.operation || 'backup' }}",
-            "target": "${{ github.event.inputs.target || 'all' }}",
-            "event_type": "${{ github.event_name }}",
-            "status": "${{ steps.execute.outputs.status }}",
-            "run_id": "${{ github.run_id }}"
-          }
-          EOF
+          jq -n \
+            --arg ts "$(date -Iseconds)" \
+            --arg op "${{ github.event.inputs.operation || 'backup' }}" \
+            --arg tgt "${{ github.event.inputs.target || 'all' }}" \
+            --arg evt "${{ github.event_name }}" \
+            --arg st "${{ steps.execute.outputs.status }}" \
+            --arg rid "${{ github.run_id }}" \
+            '{timestamp: $ts, agent: "guardian-clone-vault", operation: $op, target: $tgt, event_type: $evt, status: $st, run_id: $rid}' \
+            > "vault/logs/audit_${TIMESTAMP}.log"
           echo "📝 Audit log created"
 
       - name: 💾 Commit Vault Changes
@@ -251,15 +143,3 @@ jobs:
           echo "| Target | ${{ github.event.inputs.target || 'all' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Status | ${{ steps.execute.outputs.status }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Timestamp | $(date -Iseconds) |" >> $GITHUB_STEP_SUMMARY
-      - name: 🛡️ Run Guardian Clone Vault Agent
-        run: |
-          echo "🛡️ Guardian Clone Vault Activated"
-          echo "Role: sentinel"
-          echo "Traits: incident-response, triage, overflow"
-          echo "TTL: 96h"
-          echo "Inherits From: guardian-agent"
-          echo "Action: ${{ github.event.inputs.action || 'scheduled-run' }}"
-        env:
-          AGENT_ID: guardian-clone-vault
-          AGENT_ROLE: sentinel
-          AGENT_TTL: 96h

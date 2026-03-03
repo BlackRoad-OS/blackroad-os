@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as fs from "fs";
-import * as path from "path";
 import {
   createEpisodeId,
   formatEpisodeDigest,
@@ -176,7 +175,10 @@ describe("Chronicles", () => {
   describe("getEpisodeById", () => {
     it("returns episode when found", () => {
       const episode = getEpisodeById("001");
-      expect(episode).toBe(episode001);
+      expect(episode).toBeDefined();
+      expect(episode?.id).toBe(episode001.id);
+      expect(episode?.title).toBe(episode001.title);
+      expect(episode?.date).toBe(episode001.date);
     });
 
     it("returns undefined when not found", () => {

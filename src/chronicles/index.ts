@@ -24,10 +24,31 @@ export function addEpisode(episode: Episode): Chronicles {
   return chronicles;
 }
 
+import type { ChronicleEpisode } from "../../src/types/chronicles";
+
+function registryEpisodeToEpisode(registryEpisode: ChronicleEpisode): Episode {
+  return {
+    id: registryEpisode.id,
+    title: registryEpisode.title,
+    agent: registryEpisode.agentDesignation ?? "",
+    date: registryEpisode.date,
+    mp3: registryEpisode.audioFile ?? "",
+    transcript: false,
+  };
+}
+
 export function getEpisodeById(id: string): Episode | undefined {
   const registryEpisode = getRegistryEpisodeById(id);
   if (registryEpisode) {
-    return registryEpisode as Episode;
+    // Convert ChronicleEpisode (from types/chronicles) to Episode format
+    return {
+      id: registryEpisode.id,
+      title: registryEpisode.title,
+      agent: registryEpisode.agentDesignation || "unknown",
+      date: registryEpisode.date,
+      mp3: registryEpisode.audioFile,
+      transcript: typeof registryEpisode.contentPath === "string" && registryEpisode.contentPath.trim().length > 0,
+    };
   }
   const chronicles = readChronicles();
   const normalizedId = id.startsWith("episode-") ? id : `episode-${id}`;
