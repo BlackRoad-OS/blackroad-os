@@ -40,9 +40,9 @@ export function createOllamaRouter(): Router {
       }
       res.json(result.response);
     } catch (error) {
-      const message =
+      const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
-      res.status(502).json({ error: message });
+      res.status(502).json({ error: errorMessage });
     }
   });
 

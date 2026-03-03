@@ -48,16 +48,21 @@ export async function POST(req: Request): Promise<Response> {
     );
   }
 
-  const result = await routeToOllama(message, model ? { model } : {});
-  if (!result.routed) {
-    return Response.json(
-      {
-        error:
-          "Message not routed. Mention @blackboxprogramming, @lucidia, @ollama, or @copilot.",
-      },
-      { status: 400 }
-    );
-  }
+  try {
+    const result = await routeToOllama(message, model ? { model } : {});
+    if (!result.routed) {
+      return Response.json(
+        {
+          error:
+            "Message not routed. Mention @blackboxprogramming, @lucidia, @ollama, or @copilot.",
+        },
+        { status: 400 }
+      );
+    }
 
-  return Response.json(result.response);
+    return Response.json(result.response);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    return Response.json({ error: errorMessage }, { status: 502 });
+  }
 }

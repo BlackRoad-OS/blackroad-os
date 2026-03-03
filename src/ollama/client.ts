@@ -41,7 +41,7 @@ export async function chatWithOllama(
   options: OllamaChatOptions = {}
 ): Promise<OllamaChatResponse> {
   const baseUrl =
-    process.env.OLLAMA_BASE_URL?.replace(/\/$/, "") ??
+    process.env.OLLAMA_BASE_URL?.replace(/\/+$/, "") ??
     "http://localhost:11434";
   const model = options.model ?? process.env.OLLAMA_MODEL ?? "llama3";
 
