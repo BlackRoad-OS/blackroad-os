@@ -27,14 +27,14 @@ export function addEpisode(episode: Episode): Chronicles {
 export function getEpisodeById(id: string): Episode | undefined {
   const registryEpisode = getRegistryEpisodeById(id);
   if (registryEpisode) {
-    // Convert ChronicleEpisode to Episode format
+    // Map ChronicleEpisode to Episode format
     return {
       id: registryEpisode.id,
       title: registryEpisode.title,
-      agent: registryEpisode.agentDesignation ?? "unknown",
+      agent: registryEpisode.agentDesignation || 'lucidia',
       date: registryEpisode.date,
       mp3: registryEpisode.audioFile,
-      transcript: !!registryEpisode.contentPath,
+      transcript: Boolean(registryEpisode.contentPath),
     };
   }
   const chronicles = readChronicles();
