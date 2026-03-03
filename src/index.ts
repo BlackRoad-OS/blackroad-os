@@ -1,6 +1,5 @@
 import Fastify from "fastify";
-import { readFile } from "fs/promises";
-import { join, resolve } from "path";
+import { z } from "zod";
 import { getBuildInfo } from "./utils/buildInfo";
 import {
   DigestVoiceRunner,
@@ -16,52 +15,44 @@ import { registerSampleJobProcessor } from "./jobs/sample.job";
 
 let runner: DigestVoiceRunner | null = null;
 
-// Chronicles configuration with security validation
-const CHRONICLES_BASE_DIR = resolve(join(process.cwd(), "lucidia-chronicles"));
-const CHRONICLES_FILENAME = process.env.CHRONICLES_PATH || "chronicles.json";
+// Validation schema for Metrics
+const MetricsSchema = z.object({
+  escalations_last_3_days: z.number(),
+  agent_load: z.number(),
+  blocked_prs: z.number(),
+  avg_review_time: z.number(),
+  unmapped_repos: z.number(),
+  repo_activity_score: z.number(),
+  open_issues: z.number(),
+  avg_issue_age: z.number(),
+  unowned_workflows: z.number(),
+});
 
-// Validate that the resolved path stays within the base directory
-const resolvedPath = resolve(join(CHRONICLES_BASE_DIR, CHRONICLES_FILENAME));
-if (!resolvedPath.startsWith(CHRONICLES_BASE_DIR)) {
-  throw new Error("Invalid CHRONICLES_PATH: path must be within lucidia-chronicles directory");
-}
+/**
+ * Validates request body and returns validated Metrics or error response
+ */
+function validateMetrics(body: unknown): { success: true; data: Metrics } | { success: false; error: object } {
+  // Check if request body exists
+  if (!body) {
+    return {
+      success: false,
+      error: { error: "Request body is required" },
+    };
+  }
 
-const CHRONICLES_PATH = resolvedPath;
+  // Validate metrics data
+  const validationResult = MetricsSchema.safeParse(body);
+  if (!validationResult.success) {
+    return {
+      success: false,
+      error: {
+        error: "Invalid metrics data",
+        details: validationResult.error.errors,
+      },
+    };
+  }
 
-// Validate episodes conform to ChronicleEpisode interface
-function validateEpisode(episode: any): boolean {
-  // Type guards for required fields - mirrors ChronicleEpisode interface
-  const hasRequiredStringFields = 
-    typeof episode.id === "string" &&
-    typeof episode.title === "string" &&
-    typeof episode.series === "string" &&
-    typeof episode.subtitle === "string" &&
-    typeof episode.narrator === "string" &&
-    typeof episode.date === "string" &&
-    typeof episode.duration === "string" &&
-    typeof episode.audioFile === "string" &&
-    typeof episode.contentPath === "string";
-    
-  if (!hasRequiredStringFields) {
-    return false;
-  }
-  
-  if (!Array.isArray(episode.tags) || !episode.tags.every((tag: any) => typeof tag === "string")) {
-    return false;
-  }
-  
-  const validStatuses = ["awaiting-confirmation", "active", "completed", "archived", "expired"];
-  if (!validStatuses.includes(episode.status)) {
-    return false;
-  }
-  
-  // Validate date format
-  const dateObj = new Date(episode.date);
-  if (isNaN(dateObj.getTime())) {
-    return false;
-  }
-  
-  return true;
+  return { success: true, data: validationResult.data };
 }
 
 // Default Lucidia configuration
@@ -241,8 +232,13 @@ export async function createServer() {
 
   server.post<{ Body: Metrics }>("/api/lucidia/spawn", async (request, reply) => {
     try {
-      const metrics = request.body;
-      const result = lucidia.spawn(metrics);
+      const validation = validateMetrics(request.body);
+      if (!validation.success) {
+        reply.status(400);
+        return validation.error;
+      }
+
+      const result = lucidia.spawn(validation.data);
       return result;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
@@ -253,8 +249,13 @@ export async function createServer() {
 
   server.post<{ Body: Metrics }>("/api/lucidia/detect", async (request, reply) => {
     try {
-      const metrics = request.body;
-      const result = lucidia.detect(metrics);
+      const validation = validateMetrics(request.body);
+      if (!validation.success) {
+        reply.status(400);
+        return validation.error;
+      }
+
+      const result = lucidia.detect(validation.data);
       return result;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
