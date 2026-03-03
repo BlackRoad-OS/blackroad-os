@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BlackRoad Command Palette</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --gray-950: #0a0a0a;
+      --gray-900: #111111;
+      --gray-850: #1a1a1a;
+      --gray-800: #222222;
+      --gray-700: #333333;
+      --gray-600: #444444;
+      --gray-500: #666666;
+      --gray-400: #888888;
+      --gray-300: #aaaaaa;
+      --gray-200: #cccccc;
+      --gray-100: #e5e5e5;
+      --gray-50: #f5f5f5;
+      --white: #ffffff;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--gray-950);
+      color: var(--gray-100);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    /* Backdrop */
+    .backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 12vh;
+    }
+
+    /* Command Palette Container */
+    .command-palette {
+      width: 100%;
+      max-width: 640px;
+      background: var(--gray-900);
+      border: 1px solid var(--gray-800);
+      border-radius: 12px;
+      box-shadow: 
+        0 0 0 1px rgba(255, 255, 255, 0.03),
+        0 24px 48px -12px rgba(0, 0, 0, 0.5),
+        0 12px 24px -8px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    /* Search Input Area */
+    .search-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--gray-800);
+    }
+
+    .search-icon {
+      width: 20px;
+      height: 20px;
+      color: var(--gray-500);
+      flex-shrink: 0;
+    }
+
+    .search-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--gray-100);
+      caret-color: var(--gray-300);
+    }
+
+    .search-input::placeholder {
+      color: var(--gray-500);
+    }
+
+    .search-shortcut {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--gray-500);
+      background: var(--gray-850);
+      border: 1px solid var(--gray-700);
+      border-radius: 4px;
+      padding: 4px 6px;
+      flex-shrink: 0;
+    }
+
+    /* Results Area */
+    .results-container {
+      max-height: 420px;
+      overflow-y: auto;
+    }
+
+    .results-container::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .results-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .results-container::-webkit-scrollbar-thumb {
+      background: var(--gray-700);
+      border-radius: 4px;
+    }
+
+    .results-container::-webkit-scrollbar-thumb:hover {
+      background: var(--gray-600);
+    }
+
+    /* Result Groups */
+    .result-group {
+      padding: 8px 0;
+    }
+
+    .result-group:not(:last-child) {
+      border-bottom: 1px solid var(--gray-850);
+    }
+
+    .group-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--gray-500);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 8px 20px 4px;
+    }
+
+    /* Result Items */
+    .result-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: background 0.1s ease;
+    }
+
+    .result-item:hover,
+    .result-item.selected {
+      background: var(--gray-850);
+    }
+
+    .result-item.selected {
+      background: var(--gray-800);
+    }
+
+    .result-icon {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--gray-850);
+      border: 1px solid var(--gray-700);
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+
+    .result-item:hover .result-icon,
+    .result-item.selected .result-icon {
+      background: var(--gray-800);
+      border-color: var(--gray-600);
+    }
+
+    .result-icon svg {
+      width: 18px;
+      height: 18px;
+      color: var(--gray-400);
+    }
+
+    .result-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .result-title {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--gray-100);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .result-description {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--gray-500);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    .result-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .result-shortcut {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--gray-500);
+      background: var(--gray-850);
+      border: 1px solid var(--gray-700);
+      border-radius: 4px;
+      padding: 3px 6px;
+    }
+
+    .result-item:hover .result-shortcut,
+    .result-item.selected .result-shortcut {
+      background: var(--gray-800);
+      border-color: var(--gray-600);
+    }
+
+    .result-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--gray-400);
+      background: var(--gray-850);
+      border-radius: 4px;
+      padding: 3px 6px;
+    }
+
+    /* Footer */
+    .palette-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      border-top: 1px solid var(--gray-800);
+      background: var(--gray-850);
+    }
+
+    .footer-hints {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .hint {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      color: var(--gray-500);
+    }
+
+    .hint-key {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--gray-400);
+      background: var(--gray-800);
+      border: 1px solid var(--gray-700);
+      border-radius: 3px;
+      padding: 2px 5px;
+      min-width: 20px;
+      text-align: center;
+    }
+
+    .footer-brand {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--gray-500);
+      letter-spacing: -0.01em;
+    }
+
+    /* Empty State */
+    .empty-state {
+      padding: 48px 20px;
+      text-align: center;
+    }
+
+    .empty-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 16px;
+      color: var(--gray-600);
+    }
+
+    .empty-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--gray-300);
+      margin-bottom: 8px;
+    }
+
+    .empty-description {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: var(--gray-500);
+    }
+
+    /* Recent Items Indicator */
+    .recent-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--gray-500);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="backdrop">
+    <div class="command-palette">
+      <!-- Search Input -->
+      <div class="search-container">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.3-4.3"></path>
+        </svg>
+        <input type="text" class="search-input" placeholder="Search commands, agents, files..." autofocus>
+        <span class="search-shortcut">ESC</span>
+      </div>
+
+      <!-- Results -->
+      <div class="results-container">
+        <!-- Recent Group -->
+        <div class="result-group">
+          <div class="group-label">Recent</div>
+          
+          <div class="result-item selected">
+            <div class="result-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"></path>
+                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+              </svg>
+            </div>
+            <div class="result-content">
+              <div class="result-title">Edit agent configuration</div>
+              <div class="result-description">Modify Lucidia core settings</div>
+            </div>
+            <div class="result-meta">
+              <div class="recent-dot"></div>
+            </div>
+          </div>
+
+          <div class="result-item">
+            <div class="result-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+              </svg>
+            </div>
+            <div class="result-content">
+              <div class="result-title">memory-journal.log</div>
+              <div class="result-description">~/lucidia/logs/</div>
+            </div>
+            <div class="result-meta">
+              <div class="recent-dot"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Commands Group -->
+        <div class="result-group">
+          <div class="group-label">Commands</div>
+          
+          <div class="result-item">
+            <div class="result-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="4 17 10 11 4 5"></polyline>
+                <line x1="12" x2="20" y1="19" y2="19"></line>
+              </svg>
+            </div>
+            <div class="result-content">
+              <div class="result-title">Open terminal</div>
+              <div class="result-description">Launch new terminal session</div>
+            </div>
+            <div class="result-meta">
+              <span class="result-shortcut">⌘ T</span>
+            </div>
+          </div>
+
+          <div class="result-item">
+            <div class="result-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+              </svg>
+            </div>
+            <div class="result-content">
+              <div class="result-title">Settings</div>
+              <div class="result-description">Configure preferences</div>
+            </div>
+            <div class="result-meta">
+              <span class="result-shortcut">⌘ ,</span>
+            </div>
+          </div>
+
+          <div class="result-item">
+            <div class="result-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+              </svg>
+            </div>
+            <div class="result-content">
+              <div class="result-title">Sync agents</div>
+              <div class="result-description">Pull latest agent states from cluster</div>
+            </div>
+            <div class="result-meta">
+              <span class="result-shortcut">⌘ S</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Agents Group -->
+        <div class="result-group">
+          <div class="group-label">Agents</div>
+          
+          <div class="result-item">
+            <div class="result-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </div>
+            <div class="result-content">
+              <div class="result-title">Lucidia</div>
+              <div class="result-description">Core recursive intelligence • Active</div>
+            </div>
+            <div class="result-meta">
+              <span class="result-badge">PRIMARY</span>
+            </div>
+          </div>
+
+          <div class="result-item">
+            <div class="result-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </div>
+            <div class="result-content">
+              <div class="result-title">Alice</div>
+              <div class="result-description">Gateway coordinator • Pi 400</div>
+            </div>
+            <div class="result-meta">
+              <span class="result-badge">WORKER</span>
+            </div>
+          </div>
+
+          <div class="result-item">
+            <div class="result-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </div>
+            <div class="result-content">
+              <div class="result-title">Octavia</div>
+              <div class="result-description">Hailo accelerator • Inference</div>
+            </div>
+            <div class="result-meta">
+              <span class="result-badge">WORKER</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="palette-footer">
+        <div class="footer-hints">
+          <div class="hint">
+            <span class="hint-key">↑</span>
+            <span class="hint-key">↓</span>
+            <span>Navigate</span>
+          </div>
+          <div class="hint">
+            <span class="hint-key">↵</span>
+            <span>Select</span>
+          </div>
+          <div class="hint">
+            <span class="hint-key">⌘</span>
+            <span class="hint-key">K</span>
+            <span>Toggle</span>
+          </div>
+        </div>
+        <div class="footer-brand">BlackRoad</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
