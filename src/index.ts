@@ -8,7 +8,7 @@ import {
   validateMetadata,
 } from "./digest";
 import type { PRMetadata, DigestRunnerConfig } from "./digest";
-import { createLucidia } from "./lucidia";
+import { createLucidia, validateMetrics, ValidationError } from "./lucidia";
 import type { Metrics, SpawnRulesConfig } from "./lucidia";
 import type { Environment } from "./types";
 import { registerSampleJobProcessor } from "./jobs/sample.job";
@@ -232,34 +232,26 @@ export async function createServer() {
 
   server.post<{ Body: Metrics }>("/api/lucidia/spawn", async (request, reply) => {
     try {
-      const validation = validateMetrics(request.body);
-      if (!validation.success) {
-        reply.status(400);
-        return validation.error;
-      }
-
-      const result = lucidia.spawn(validation.data);
+      validateMetrics(request.body);
+      const metrics = request.body;
+      const result = lucidia.spawn(metrics);
       return result;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
-      reply.status(500);
+      reply.status(error instanceof ValidationError ? 400 : 500);
       return { error: message };
     }
   });
 
   server.post<{ Body: Metrics }>("/api/lucidia/detect", async (request, reply) => {
     try {
-      const validation = validateMetrics(request.body);
-      if (!validation.success) {
-        reply.status(400);
-        return validation.error;
-      }
-
-      const result = lucidia.detect(validation.data);
+      validateMetrics(request.body);
+      const metrics = request.body;
+      const result = lucidia.detect(metrics);
       return result;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
-      reply.status(500);
+      reply.status(error instanceof ValidationError ? 400 : 500);
       return { error: message };
     }
   });
