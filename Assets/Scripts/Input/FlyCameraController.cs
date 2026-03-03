@@ -2,6 +2,10 @@ using UnityEngine;
 
 namespace BlackRoad.Worldbuilder.Input
 {
+    /// <summary>
+    /// Fly camera controller for free movement in the world.
+    /// Supports WASD movement, mouse look, and speed modifiers.
+    /// </summary>
     [RequireComponent(typeof(Camera))]
     public class FlyCameraController : MonoBehaviour
     {
@@ -14,6 +18,9 @@ namespace BlackRoad.Worldbuilder.Input
         public float lookSensitivity = 3f;
         public float minPitch = -80f;
         public float maxPitch = 80f;
+
+        [Header("Cursor")]
+        [SerializeField] private KeyCode unlockCursorKey = KeyCode.Escape;
 
         private float _yaw;
         private float _pitch;
@@ -33,8 +40,8 @@ namespace BlackRoad.Worldbuilder.Input
             HandleLook();
             HandleMove();
 
-            // Toggle cursor lock for debugging
-            if (UnityEngine.Input.GetKeyDown(KeyCode.Tab))
+            // Manual cursor unlock with Escape (inventory system handles Tab)
+            if (UnityEngine.Input.GetKeyDown(unlockCursorKey))
             {
                 if (Cursor.lockState == CursorLockMode.Locked)
                 {
@@ -79,8 +86,8 @@ namespace BlackRoad.Worldbuilder.Input
                     UnityEngine.Input.GetAxisRaw("Vertical")
                 );
 
-            // Vertical up/down
-            if (UnityEngine.Input.GetKey(KeyCode.E))
+            // Vertical up/down (changed E to Space for up, Q for down to avoid conflict)
+            if (UnityEngine.Input.GetKey(KeyCode.Space))
                 input.y += 1f;
             if (UnityEngine.Input.GetKey(KeyCode.Q))
                 input.y -= 1f;
