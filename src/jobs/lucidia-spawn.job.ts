@@ -82,14 +82,16 @@ const defaultConfig: SpawnRulesConfig = {
   ],
 };
 
-const lucidia = createLucidia(defaultConfig);
+let lucidia!: ReturnType<typeof createLucidia>;
 
 /**
  * Register the Lucidia spawn job processor
  */
 export function registerLucidiaSpawnProcessor(
-  connection = { host: "localhost", port: 6379 }
+  connection = { host: "localhost", port: 6379 },
+  config: SpawnRulesConfig = defaultConfig
 ) {
+  lucidia = createLucidia(config);
   const worker = new Worker<SpawnJobData, SpawnJobResult>(
     LUCIDIA_SPAWN_QUEUE,
     async (job) => {
