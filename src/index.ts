@@ -18,12 +18,15 @@ let runner: DigestVoiceRunner | null = null;
 
 // Chronicles configuration with security validation
 const CHRONICLES_BASE_DIR = resolve(join(process.cwd(), "lucidia-chronicles"));
-const CHRONICLES_FILENAME = process.env.CHRONICLES_PATH || "chronicles.json";
+const CHRONICLES_FILENAME =
+  process.env.CHRONICLES_FILENAME || process.env.CHRONICLES_PATH || "chronicles.json";
 
 // Validate that the resolved path stays within the base directory
 const resolvedPath = resolve(join(CHRONICLES_BASE_DIR, CHRONICLES_FILENAME));
 if (!resolvedPath.startsWith(CHRONICLES_BASE_DIR)) {
-  throw new Error("Invalid CHRONICLES_PATH: path must be within lucidia-chronicles directory");
+  throw new Error(
+    "Invalid chronicles filename: resolved path must be within the lucidia-chronicles directory",
+  );
 }
 
 const CHRONICLES_PATH = resolvedPath;
