@@ -294,7 +294,6 @@ if (require.main === module) {
     .then((server) => server.listen({ port, host: "0.0.0.0" }))
     .then((address) => {
       console.log(`Server listening at ${address}`);
-      console.log(`Lucidia spawn system: ACTIVE`);
       console.log(`Job workers: ${jobWorker ? "ENABLED" : "DISABLED (set ENABLE_JOBS=true)"}`);
     })
     .catch((err) => {
