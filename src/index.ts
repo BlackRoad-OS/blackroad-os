@@ -7,6 +7,9 @@ import {
   validateMetadata,
 } from "./digest";
 import type { PRMetadata, DigestRunnerConfig } from "./digest";
+import { streamChat, collectStreamedText } from "./ai/stream";
+import type { StreamRequest } from "./ai/providers";
+import { validateStreamRequest } from "./ai/providers";
 
 let runner: DigestVoiceRunner | null = null;
 
@@ -69,6 +72,58 @@ export async function createServer() {
     const digestRunner = getRunner();
     digestRunner.updateConfig(updates);
     return { success: true, config: digestRunner.getConfig() };
+  });
+
+  /**
+   * POST /api/ai/stream
+   *
+   * Streams a chat completion from the configured AI provider using
+   * Server-Sent Events (SSE). Supports openai (GitHub Copilot-compatible),
+   * anthropic, and groq providers.
+   */
+  server.post<{ Body: StreamRequest }>("/api/ai/stream", async (request, reply) => {
+    try {
+      validateStreamRequest(request.body);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Invalid request";
+      reply.status(400);
+      return { error: message };
+    }
+
+    reply.raw.writeHead(200, {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    });
+
+    try {
+      for await (const chunk of streamChat(request.body)) {
+        reply.raw.write(chunk);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Stream error";
+      reply.raw.write(`data: ${JSON.stringify({ error: message })}\n\n`);
+    } finally {
+      reply.raw.end();
+    }
+  });
+
+  /**
+   * POST /api/ai/complete
+   *
+   * Non-streaming convenience endpoint that returns the full assistant
+   * reply as a JSON object.
+   */
+  server.post<{ Body: StreamRequest }>("/api/ai/complete", async (request, reply) => {
+    try {
+      validateStreamRequest(request.body);
+      const text = await collectStreamedText(request.body);
+      return { text };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      reply.status(500);
+      return { error: message };
+    }
   });
 
   return server;
