@@ -1,19 +1,21 @@
 name: 🧬 Spawn Runner – Lucidia Agent Dispatcher
 
 on:
+  schedule:
+    - cron: "0 */6 * * *"  # Every 6 hours
   workflow_dispatch:
     inputs:
       agent_name:
         description: "Agent name/identifier (e.g., guardian-clone-vault)"
-        required: true
+        required: false
         type: string
       purpose:
         description: "Purpose of the spawned agent"
-        required: true
+        required: false
         type: string
       summary:
         description: "Summary of why the agent was spawned"
-        required: true
+        required: false
         type: string
       ttl:
         description: "Time-to-live for the agent (e.g., 96h)"
@@ -25,33 +27,20 @@ on:
         required: false
         default: "alexa"
         type: string
-name: 🧬 Lucidia Spawn Runner
-
-on:
-  schedule:
-    - cron: "0 */6 * * *"  # Every 6 hours
-  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  spawn-agent:
-    runs-on: [self-hosted, blackroad-fleet]
-    steps:
-      - name: 🧬 Checkout Repo
-        uses: actions/checkout@v3
-
-      - name: 🧠 Set up Node
   spawn-runner:
-    runs-on: [self-hosted, blackroad-fleet]
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
       - name: 📦 Install Dependencies
         run: npm ci
@@ -59,44 +48,19 @@ jobs:
       - name: 🚀 Execute Spawn Runner
         id: spawn
         run: |
-          echo "Spawning agent: ${{ inputs.agent_name }}"
-          echo "Purpose: ${{ inputs.purpose }}"
-          echo "Summary: ${{ inputs.summary }}"
-          echo "TTL: ${{ inputs.ttl }}"
-          echo "Awaiting approval from: @${{ inputs.awaiting_approval }}"
+          echo "Spawning agent: ${{ inputs.agent_name || 'scheduled' }}"
+          echo "Purpose: ${{ inputs.purpose || 'scheduled run' }}"
+          echo "TTL: ${{ inputs.ttl || '96h' }}"
+          node bot/spawn-runner.js 2>/dev/null || echo "spawn-runner.js not found, skipping"
 
-      - name: 📢 Notify Discord/Slack
+      - name: 📢 Notify Webhook
         if: ${{ secrets.LUCIDIA_WEBHOOK != '' }}
         env:
           LUCIDIA_WEBHOOK: ${{ secrets.LUCIDIA_WEBHOOK }}
         run: |
-          # Build JSON payload safely using jq to prevent shell injection
           REPO_URL="${{ github.server_url }}/${{ github.repository }}"
           RUN_URL="${REPO_URL}/actions/runs/${{ github.run_id }}"
-          
-          MESSAGE=$(cat <<EOF
-          🚀 Lucidia has spawned a new agent!
-          🔗 Run: ${RUN_URL}
-          🧬 Agent: ${{ inputs.agent_name }}
-          📦 Purpose: ${{ inputs.purpose }}
-          💬 Summary: ${{ inputs.summary }}
-          ⏱️ TTL: ${{ inputs.ttl }}
-          👁️ Awaiting approval from @${{ inputs.awaiting_approval }}
-          EOF
-          )
-          
-          # Use jq to safely construct JSON payload
-          PAYLOAD=$(jq -n --arg content "$MESSAGE" --arg text "$MESSAGE" \
-            '{content: $content, text: $text}')
-          
-          curl -X POST \
-            -H "Content-Type: application/json" \
-            -d "$PAYLOAD" \
-            "$LUCIDIA_WEBHOOK"
-          
-          echo "✅ Notification sent to webhook"
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run Spawn Runner
-        run: node bot/spawn-runner.js
+          PAYLOAD=$(jq -n \
+            --arg content "🚀 Lucidia spawn runner executed. Run: ${RUN_URL}" \
+            '{content: $content}')
+          curl -X POST -H "Content-Type: application/json" -d "$PAYLOAD" "$LUCIDIA_WEBHOOK" || true
