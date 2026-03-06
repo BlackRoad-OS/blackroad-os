@@ -8,13 +8,13 @@ on:
 
 jobs:
   guard:
-    runs-on: [self-hosted, blackroad-fleet]
+    runs-on: ubuntu-latest
     steps:
       - name: Guardrail
         run: echo "CORE repo guardrail active"
 
   lint:
-    runs-on: [self-hosted, blackroad-fleet]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:

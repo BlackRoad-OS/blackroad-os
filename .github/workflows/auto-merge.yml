@@ -7,9 +7,13 @@ on:
   check_suite:
     types: [completed]
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   auto-merge:
-    runs-on: [self-hosted, pi]
+    runs-on: ubuntu-latest
     if: |
       github.actor == 'dependabot[bot]' ||
       github.actor == 'blackroad-bot' ||
@@ -36,7 +40,7 @@ jobs:
             console.log(`✅ Auto-merged PR #${pr.number}`);
 
   auto-merge-bot-branches:
-    runs-on: [self-hosted, pi]
+    runs-on: ubuntu-latest
     if: |
       startsWith(github.head_ref, 'bot/') ||
       startsWith(github.head_ref, 'copilot/')
