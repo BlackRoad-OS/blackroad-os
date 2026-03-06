@@ -91,7 +91,7 @@ jobs:
 
   deploy:
     needs: build-docs
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, blackroad-fleet]
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

@@ -9,7 +9,7 @@ on:
 
 jobs:
   emoji-bot:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, blackroad-fleet]
     steps:
       - name: 🧬 Checkout Repo
         uses: actions/checkout@v3
@@ -51,7 +51,7 @@ permissions:
 
 jobs:
   run:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, blackroad-fleet]
     steps:
       - name: Checkout
         uses: actions/checkout@v4

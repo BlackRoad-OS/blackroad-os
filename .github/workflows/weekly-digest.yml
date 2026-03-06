@@ -13,7 +13,7 @@ on:
 
 jobs:
   generate-digest:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, blackroad-fleet]
     permissions:
       issues: write
       contents: read
