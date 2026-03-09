@@ -27,7 +27,7 @@ emoji_registry:
 
 # Agent definitions
 agents:
-  codex-digest-agent:
+  blackroad os-digest-agent:
     role: interpreter
     description: |
       Translates weekly emoji-based agent performance data into executive summaries.
@@ -88,7 +88,7 @@ agents:
 routing:
   digest-to-escalation:
     condition: "blocked_percentage > 15"
-    from: codex-digest-agent
+    from: blackroad os-digest-agent
     to: planner-agent
     action: escalate
 

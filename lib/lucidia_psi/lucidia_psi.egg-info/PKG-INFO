@@ -1,0 +1,9 @@
+Metadata-Version: 2.4
+Name: lucidia-psi
+Version: 0.1.0
+Summary: Paraconsistent memory system for Lucidia AI
+Author: Alexa Amundson
+Requires-Python: >=3.10
+Dynamic: author
+Dynamic: requires-python
+Dynamic: summary

@@ -1,0 +1,6 @@
+setup.py
+lucidia_psi.egg-info/PKG-INFO
+lucidia_psi.egg-info/SOURCES.txt
+lucidia_psi.egg-info/dependency_links.txt
+lucidia_psi.egg-info/entry_points.txt
+lucidia_psi.egg-info/top_level.txt
