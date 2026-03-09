@@ -176,7 +176,15 @@ describe("Chronicles", () => {
   describe("getEpisodeById", () => {
     it("returns episode when found", () => {
       const episode = getEpisodeById("001");
-      expect(episode).toBe(episode001);
+      // getEpisodeById converts ChronicleEpisode to Episode format
+      expect(episode).toEqual({
+        id: episode001.id,
+        title: episode001.title,
+        agent: episode001.agentDesignation,
+        date: episode001.date,
+        mp3: episode001.audioFile,
+        transcript: true,
+      });
     });
 
     it("returns undefined when not found", () => {

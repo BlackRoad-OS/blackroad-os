@@ -1,0 +1,110 @@
+name: 🤖 Self-Healing Master
+
+on:
+  workflow_run:
+    workflows: ["*"]
+    types: [completed]
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    inputs:
+      force_heal:
+        description: 'Force healing check'
+        required: false
+        default: 'false'
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  actions: write
+
+jobs:
+  analyze-failure:
+    if: github.event.workflow_run.conclusion == 'failure' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    outputs:
+      fix_type: ${{ steps.diagnose.outputs.fix_type }}
+      needs_healing: ${{ steps.diagnose.outputs.needs_healing }}
+      failure_reason: ${{ steps.diagnose.outputs.reason }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+      - name: Diagnose
+        id: diagnose
+        run: |
+          if [ -f "package-lock.json" ] && [ -f "pnpm-lock.yaml" ]; then
+            echo "fix_type=lock_conflict" >> $GITHUB_OUTPUT
+            echo "needs_healing=true" >> $GITHUB_OUTPUT
+            echo "reason=Multiple lock files" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event.workflow_run.conclusion }}" = "failure" ]; then
+            echo "fix_type=workflow_failure" >> $GITHUB_OUTPUT
+            echo "needs_healing=true" >> $GITHUB_OUTPUT
+            echo "reason=Workflow failed" >> $GITHUB_OUTPUT
+          else
+            echo "needs_healing=false" >> $GITHUB_OUTPUT
+            echo "fix_type=none" >> $GITHUB_OUTPUT
+          fi
+
+  auto-heal:
+    needs: analyze-failure
+    if: needs.analyze-failure.outputs.needs_healing == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
+        with:
+          node-version: '20'
+      - name: Apply Fix
+        id: fix
+        run: |
+          FIX_TYPE="${{ needs.analyze-failure.outputs.fix_type }}"
+          CHANGED=false
+          if [ "$FIX_TYPE" = "lock_conflict" ]; then
+            if [ -f "pnpm-lock.yaml" ]; then rm -f package-lock.json && CHANGED=true
+            else rm -f pnpm-lock.yaml && CHANGED=true; fi
+          fi
+          echo "changed=$CHANGED" >> $GITHUB_OUTPUT
+      - name: Open PR with fix
+        if: steps.fix.outputs.changed == 'true'
+        run: |
+          BRANCH="fix/auto-heal-$(date +%Y%m%d-%H%M)"
+          git config user.name "BlackRoad Self-Healing Bot"
+          git config user.email "bot@blackroad.io"
+          git checkout -b "$BRANCH"
+          git add -A
+          git commit -m "fix: auto-heal ${{ needs.analyze-failure.outputs.fix_type }}" || true
+          git push origin "$BRANCH"
+          gh pr create --title "fix: auto-heal ${{ needs.analyze-failure.outputs.fix_type }}" \
+            --body "Auto-generated fix." --base main --head "$BRANCH" || true
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Create Issue on Failure
+        if: failure()
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'Self-Healing Failed',
+              body: 'Auto-healing failed. Check workflow run for details.',
+              labels: ['auto-fix-failed']
+            })
+
+  health-check:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Service Health
+        run: |
+          for endpoint in "https://www.blackroad.io/api/health" "https://api.blackroad.io/health"; do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$endpoint" --max-time 10 || echo "000")
+            [ "$HTTP_CODE" = "200" ] && echo "OK: $endpoint" || echo "::warning::$endpoint returned $HTTP_CODE"
+          done
