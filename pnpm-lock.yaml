@@ -18,8 +18,8 @@ importers:
         specifier: ^21.1.1
         version: 21.1.1
       bullmq:
-        specifier: ^5.64.1
-        version: 5.70.1
+        specifier: ^5.70.4
+        version: 5.70.4
       express:
         specifier: ^5.1.0
         version: 5.2.1
@@ -1274,8 +1274,8 @@ packages:
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
     hasBin: true
 
-  bullmq@5.70.1:
-    resolution: {integrity: sha512-HjfGHfICkAClrFL0Y07qNbWcmiOCv1l+nusupXUjrvTPuDEyPEJ23MP0lUwUs/QEy1a3pWt/P/sCsSZ1RjRK+w==}
+  bullmq@5.70.4:
+    resolution: {integrity: sha512-S58YT/tGdhc4pEPcIahtZRBR1TcTLpss1UKiXimF+Vy4yZwF38pW2IvhHqs4j4dEbZqDt8oi0jGGN/WYQHbPDg==}
 
   bytes@3.1.2:
     resolution: {integrity: sha512-/Nf7TyzTx6S3yRJObOAV7956r8cr2+Oj8AC5dt8wSP3BQAoeX58NoHyCU8P8zGkNXStjTSi6fzO6F0pBdcYbEg==}
@@ -3699,7 +3699,7 @@ snapshots:
       node-releases: 2.0.27
       update-browserslist-db: 1.2.3(browserslist@4.28.1)
 
-  bullmq@5.70.1:
+  bullmq@5.70.4:
     dependencies:
       cron-parser: 4.9.0
       ioredis: 5.9.3
