@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "agents": [
     {
-      "id": "codex-digest-agent",
-      "name": "Codex Digest Agent",
+      "id": "blackroad os-digest-agent",
+      "name": "BlackRoad OS Digest Agent",
       "role": "interpreter",
       "source": "bot/digest.js",
       "traits": [

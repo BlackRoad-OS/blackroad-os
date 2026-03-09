@@ -21,7 +21,7 @@ spawn_rules:
       config:
         role: analyst
         traits: ["summary-check", "anomaly-detector"]
-        inherits_from: codex-digest-agent
+        inherits_from: blackroad os-digest-agent
 
   - if:
       created_repos_last_72h: "> 5"
